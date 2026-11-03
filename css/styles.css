@@ -1613,3 +1613,83 @@ textarea {
   }
   .masthead-inner { align-items: stretch; }
 }
+
+/* Preserve the established Kahoot arena and answer-card behavior. */
+body.player-only { background: var(--night); }
+.duel-stage {
+  background:
+    radial-gradient(circle at 50% -20%, rgba(255,255,255,0.12), transparent 35%),
+    var(--night);
+  color: #F3F0E7;
+  border: 2px solid var(--gold-night);
+  border-radius: 20px !important;
+}
+.duel-stage::before {
+  display: block !important;
+  background:
+    radial-gradient(circle at 18% 15%, rgba(242,123,174,0.16), transparent 40%),
+    radial-gradient(circle at 82% 80%, rgba(124,92,255,0.18), transparent 45%),
+    linear-gradient(rgba(226,185,75,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(226,185,75,0.05) 1px, transparent 1px);
+}
+.duel-question-box {
+  border: 0;
+  background: transparent;
+  color: inherit;
+}
+.duel-q-text { color: #FFFFFF; font-family: "Instrument Serif", Georgia, serif; }
+.duel-card {
+  min-height: 108px;
+  border-radius: 14px !important;
+  border: 2px solid var(--gold-night);
+  background: linear-gradient(145deg, #FFFFFF, #F1EDE3) !important;
+  color: #15120F !important;
+  box-shadow: inset 0 0 0 3px #FBFAF6, inset 0 0 0 4px rgba(184,144,46,0.45);
+}
+.duel-card:hover:not([disabled]) {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lift), inset 0 0 0 3px #FBFAF6, inset 0 0 0 4px var(--gold);
+}
+.duel-card:nth-child(1) { border-color: #F04461; }
+.duel-card:nth-child(2) { border-color: #4F7FF5; }
+.duel-card:nth-child(3) { border-color: #E4B33B; }
+.duel-card:nth-child(4) { border-color: #25B99A; }
+.duel-card.picked { outline: 3px solid var(--pink); outline-offset: 2px; }
+.duel-card.correct-reveal {
+  background: #ECFEF8 !important;
+  border-color: #10B981;
+  box-shadow: var(--shadow-gold);
+  transform: translateY(-4px);
+}
+.duel-card.wrong-reveal {
+  background: #222949 !important;
+  color: #9CA3AF !important;
+  border-color: #374151;
+  opacity: 0.72;
+}
+.duel-card.wrong-picked {
+  background: #FEE4E2 !important;
+  color: #991B1B !important;
+  border-color: #EF4444;
+}
+.duel-shape {
+  border: 0;
+  border-radius: 10px !important;
+}
+.shape-0 { background: #C8324B; }
+.shape-1 { background: #1E3A8A; }
+.shape-2 { background: #B8860B; }
+.shape-3 { background: #0E7C6B; }
+.kahoot-waiting-card {
+  color: #fff;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(236,92,154,0.42), transparent 34%),
+    radial-gradient(circle at 80% 75%, rgba(124,92,255,0.45), transparent 38%),
+    linear-gradient(145deg, #151d52, #080c22);
+  border: 2px solid rgba(226,185,75,0.8);
+  border-radius: 24px !important;
+  box-shadow: 0 24px 70px rgba(10,15,38,0.32);
+}
+.waiting-avatar {
+  border-radius: 50% !important;
+}
