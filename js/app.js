@@ -420,11 +420,11 @@ function handleIncomingNetworkPayload(data, sourceLabel){
       PL_GAME.mode = data.mode || PL_GAME.mode;
       PL_GAME.secLimit = +data.limitSec || PL_GAME.secLimit;
       PL_GAME.waitingForHost = true;
-      showPlayerWaiting("James preparó la partida. Espera a que pulse «Listo»…");
+      showPlayerWaiting("El anfitrión preparó la partida. Espera a que pulse «Listo»…");
     }
   } else if(data.kind === "host_ready"){
     if(PLAYER_ONLY_MODE && PL_GAME.active && PL_GAME.waitingForHost){
-      $("#waitingStatusText").textContent = "¡James está listo! La primera pregunta está por comenzar…";
+      $("#waitingStatusText").textContent = "¡El anfitrión está listo! La primera pregunta está por comenzar…";
     }
   } else if(data.kind === "host_reveal"){
     if(PLAYER_ONLY_MODE && PL_GAME.active && !PL_GAME.answeredCurrent){
@@ -1153,7 +1153,7 @@ function startPlayerKahoot(){
     character: PL_GAME.character,
     mode: PL_GAME.mode
   });
-  showPlayerWaiting("Esperando a que James pulse «Listo»…");
+  showPlayerWaiting("Esperando a que el anfitrión pulse «Listo»…");
 }
 
 function renderPlayerCurrentCard(startedAt){
