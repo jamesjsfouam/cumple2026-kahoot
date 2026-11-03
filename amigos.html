@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Cumpleaños #19 · Kahoot para Amigos</title>
+<title>Kahoot · Sala de juego</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -18,7 +18,7 @@
     <div class="brand-group">
       <div class="brand-seal" aria-hidden="true">✦</div>
       <div>
-        <div class="brand-title">El Duelista Silencioso · Cumple #19</div>
+        <div class="brand-title">Kahoot · Sala de juego</div>
         <div class="mono" style="color:var(--graphite)" id="headerSubPath">~/cumple/admin-estadisticas · rock munchies · 3 nov 5:00 p. m.</div>
       </div>
       <span class="ability-pill" id="abilityPill">
@@ -268,14 +268,14 @@
     <div id="playerLobbyCard" class="panel" style="max-width: 780px; margin: 0 auto; border-width: 2px; border-color: var(--gold);">
       <div class="panel-head">
         <div>
-          <span class="mono" style="color:var(--gold)">✦ duelo de cumpleaños n.º 19 · james santiago</span>
-          <h2 class="serif" style="font-size: 2.3rem; line-height: 1.05; margin-top: 4px;">¿Cuánto me conoces realmente?</h2>
+          <span class="mono" style="color:var(--gold)">✦ sala de juego</span>
+          <h2 class="serif" style="font-size: 2.3rem; line-height: 1.05; margin-top: 4px;">¿Listo para jugar?</h2>
         </div>
-        <span class="badge badge-gold">8000 LP iniciales</span>
+        <span class="badge badge-gold">Puntuación inicial: 0</span>
       </div>
 
       <p style="color:var(--graphite); margin-bottom: 18px;">
-        Regístrate para entrar a la sala. Cuando todos estén dentro, James pulsará <strong>Listo</strong> y la partida comenzará para todos al mismo tiempo.
+        Escribe tu nombre, elige un personaje y entra a la sala. Espera al anfitrión: la partida comenzará para todos al mismo tiempo.
       </p>
 
       <div class="grid-2" style="margin-bottom: 16px;">
@@ -336,7 +336,7 @@
       <div class="waiting-avatar" id="waitingAvatar">🧙</div>
       <h2 class="waiting-title">¡Estás dentro!</h2>
       <p class="waiting-name" id="waitingPlayerName">Jugador</p>
-      <p class="waiting-copy">Mira la pantalla principal. James iniciará la partida cuando todos estén listos.</p>
+      <p class="waiting-copy">La partida comenzará cuando el anfitrión esté listo.</p>
       <div class="waiting-status"><span class="waiting-pulse"></span><span id="waitingStatusText">Esperando al anfitrión…</span></div>
       <div class="waiting-players" id="waitingPlayersList"></div>
     </div>
@@ -351,8 +351,8 @@
           </div>
           <div class="toolbar">
             <span class="streak-pill" id="plHudStreak">🔥 racha x0</span>
-            <span class="lp-counter" title="Puntos de Vida Yu-Gi-Oh!">
-              <small>LP</small>
+            <span class="lp-counter" title="Puntos de vida">
+              <small>VIDA</small>
               <b id="plHudLp">8000</b>
             </span>
             <span class="lp-counter" style="border-color:#5EEAD4; color:#5EEAD4;">
@@ -411,11 +411,11 @@
           <div>
             <strong style="font-size:0.95rem;">📲 Asegura tu registro en el Ranking de Premios</strong>
             <p style="font-size:0.82rem; color:var(--graphite);">
-              Tus datos ya se registraron en la sala. Si estás en Rock Munchies sin conexión, envíale este código a James por WhatsApp con un toque:
+              Tus datos ya se registraron en la sala. Si pierdes conexión, puedes compartir este código con el anfitrión:
             </p>
           </div>
           <div class="toolbar">
-            <button class="btn btn-teal" id="btnPlayerSendWhatsapp" type="button">📲 Enviar a James por WhatsApp</button>
+            <button class="btn btn-teal" id="btnPlayerSendWhatsapp" type="button">📲 Enviar al anfitrión</button>
             <button class="btn btn-quiet" id="btnPlayerCopyCode" type="button">📋 Copiar código DUELO19</button>
           </div>
         </div>

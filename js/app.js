@@ -2072,11 +2072,11 @@ $("#btnPlayerCopyCode").addEventListener("click", function(){
 });
 $("#btnPlayerSendWhatsapp").addEventListener("click", function(){
   var code = $("#plResultCodeOutput").value;
-  var msg = "⚔️ ¡Terminé el Reto de Cumpleaños #19 de James!\n" +
+  var msg = "🎮 ¡Terminé la partida!\n" +
     "👤 Jugador: " + PL_GAME.name + "\n" +
     "🏆 Puntaje: " + PL_GAME.score.toLocaleString("es-NI") + " pts (" + PL_GAME.correct + "/" + PL_GAME.deck.length + ")\n" +
-    "❤️ LP finales: " + PL_GAME.lp + "\n\n" +
-    "Código para tu Panel de Admin:\n" + code;
+    "❤️ Vida final: " + PL_GAME.lp + "\n\n" +
+    "Código para el anfitrión:\n" + code;
   window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank", "noopener");
 });
 
