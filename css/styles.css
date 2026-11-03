@@ -593,7 +593,9 @@ textarea.input {
 
 /* Kahoot Duel Arena (Night Stage) */
 .duel-stage {
-  background: var(--night);
+  background:
+    radial-gradient(circle at 50% -20%, rgba(255,255,255,0.12), transparent 35%),
+    var(--night);
   color: #F3F0E7;
   border-radius: 20px;
   border: 2px solid var(--gold-night);
@@ -616,6 +618,19 @@ textarea.input {
     linear-gradient(90deg, rgba(226,185,75,0.05) 1px, transparent 1px);
   background-size: 100% 100%, 100% 100%, 36px 36px, 36px 36px;
   pointer-events: none;
+}
+.duel-stage::after {
+  content: "✦";
+  position: absolute;
+  right: 7%;
+  top: 8%;
+  color: rgba(226,185,75,0.42);
+  font-size: 4rem;
+  animation: stageStar 3.8s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes stageStar {
+  50% { transform: translateY(10px) rotate(18deg); opacity: 0.55; }
 }
 .duel-stage > * { position: relative; z-index: 2; }
 .duel-stage.question-enter { animation: questionEnter 520ms var(--ease-quiet); }
@@ -713,7 +728,7 @@ textarea.input {
   min-height: 108px;
   border-radius: 14px;
   border: 2px solid var(--gold-night);
-  background: #FBFAF6;
+  background: linear-gradient(145deg, #FFFFFF, #F1EDE3);
   color: #15120F;
   padding: 16px 18px;
   cursor: pointer;
@@ -753,6 +768,10 @@ textarea.input {
 .shape-1 { background: #1E3A8A; } /* ◆ Ledger Blue */
 .shape-2 { background: #B8860B; } /* ● Duel Gold */
 .shape-3 { background: #0E7C6B; } /* ■ Terminal Teal */
+.duel-card:nth-child(1) { border-color: #F04461; }
+.duel-card:nth-child(2) { border-color: #4F7FF5; }
+.duel-card:nth-child(3) { border-color: #E4B33B; }
+.duel-card:nth-child(4) { border-color: #25B99A; }
 
 .duel-card-text {
   font-weight: 600;
@@ -831,6 +850,18 @@ textarea.input {
   border-radius: 16px;
   padding: 16px;
   margin-bottom: 20px;
+}
+.player-only .duel-stage {
+  border-radius: 28px;
+  box-shadow: 0 30px 90px rgba(0,0,0,0.35);
+}
+.player-only .duel-question-box {
+  padding: 18px 14px 22px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.06);
+}
+.player-only .duel-q-text {
+  text-shadow: 0 4px 20px rgba(0,0,0,0.35);
 }
 .kahoot-waiting-card {
   max-width: 720px;

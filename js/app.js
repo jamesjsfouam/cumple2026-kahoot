@@ -1394,7 +1394,8 @@ var HOST_SHOW = {
   revealed: false,
   started: false,
   standing: 32,
-  timerIv: null
+  timerIv: null,
+  transitionTimer: null
 };
 
 function renderHostStage(){
@@ -1442,6 +1443,60 @@ function renderHostStage(){
     $("#hostAnswerBanner").textContent = "✦ Respuesta correcta: Opción " + numFinger + " («" + item.o[item.a] + "»). Quien no mostró " + numFinger + (numFinger === 1 ? " dedo" : " dedos") + " pierde 1000 LP y se sienta.";
   }
   $("#hostVotesCounterTxt").textContent = (qStats ? qStats.attempts : 0) + " respuestas registradas en esta carta";
+}
+
+function stopHostClock(){
+  clearInterval(HOST_SHOW.timerIv);
+  clearTimeout(HOST_SHOW.transitionTimer);
+  HOST_SHOW.timerIv = null;
+  HOST_SHOW.transitionTimer = null;
+}
+
+function beginHostQuestion(){
+  if(!HOST_SHOW.started) return;
+  stopHostClock();
+  HOST_SHOW.revealed = false;
+  broadcastHostQuestion();
+  renderHostStage();
+  var left = 10;
+  $("#hostTimerDisplay").textContent = "⏱ Respondiendo: " + left + " s";
+  HOST_SHOW.timerIv = setInterval(function(){
+    left--;
+    if(left > 0){
+      $("#hostTimerDisplay").textContent = "⏱ Respondiendo: " + left + " s";
+      if(left <= 3) sfxTick();
+      return;
+    }
+    stopHostClock();
+    revealHostQuestion(true);
+  }, 1000);
+}
+
+function revealHostQuestion(autoAdvance){
+  if(!HOST_SHOW.started || HOST_SHOW.revealed) return;
+  stopHostClock();
+  HOST_SHOW.revealed = true;
+  broadcastHostReveal();
+  sfxHit();
+  renderHostStage();
+  if(autoAdvance){
+    HOST_SHOW.transitionTimer = setTimeout(function(){
+      advanceHostQuestion();
+    }, 3200);
+  }
+}
+
+function advanceHostQuestion(){
+  stopHostClock();
+  var deckLength = getCombinedDeck(HOST_SHOW.deckMode).length;
+  if(HOST_SHOW.idx >= deckLength - 1){
+    broadcastPacket({ kind: "host_end" });
+    HOST_SHOW.revealed = true;
+    renderHostStage();
+    return;
+  }
+  HOST_SHOW.idx++;
+  beginHostQuestion();
 }
 
 function broadcastHostQuestion(){
@@ -2027,6 +2082,7 @@ $("#btnPlayerSendWhatsapp").addEventListener("click", function(){
 
 /* Eventos Pantalla Show en Vivo (Anfitrión) */
 $("#hostDeckSelect").addEventListener("change", function(e){
+  stopHostClock();
   HOST_SHOW.deckMode = e.target.value;
   HOST_SHOW.idx = 0;
   HOST_SHOW.revealed = false;
@@ -2040,9 +2096,9 @@ $("#btnHostPrev").addEventListener("click", function(){
     toast("Pulsa «Listo: iniciar partida» primero.");
     return;
   }
+  stopHostClock();
   HOST_SHOW.idx--;
   HOST_SHOW.revealed = false;
-  broadcastHostQuestion();
   renderHostStage();
 });
 $("#btnHostNext").addEventListener("click", function(){
@@ -2050,29 +2106,14 @@ $("#btnHostNext").addEventListener("click", function(){
     toast("Pulsa «Listo: iniciar partida» primero.");
     return;
   }
-  var deckLength = getCombinedDeck(HOST_SHOW.deckMode).length;
-  if(HOST_SHOW.idx >= deckLength - 1){
-    broadcastPacket({ kind: "host_end" });
-    HOST_SHOW.revealed = true;
-    clearInterval(HOST_SHOW.timerIv);
-    renderHostStage();
-    return;
-  }
-  HOST_SHOW.idx++;
-  HOST_SHOW.revealed = false;
-  broadcastHostQuestion();
-  renderHostStage();
+  advanceHostQuestion();
 });
 $("#btnHostRevealNow").addEventListener("click", function(){
   if(!HOST_SHOW.started){
     toast("Pulsa «Listo: iniciar partida» primero.");
     return;
   }
-  clearInterval(HOST_SHOW.timerIv);
-  HOST_SHOW.revealed = true;
-  broadcastHostReveal();
-  sfxHit();
-  renderHostStage();
+  revealHostQuestion(true);
 });
 $("#btnHostAction").addEventListener("click", function(){
   if(HOST_SHOW.started){
@@ -2080,27 +2121,9 @@ $("#btnHostAction").addEventListener("click", function(){
     return;
   }
   HOST_SHOW.started = true;
-  $("#btnHostAction").textContent = "✓ Partida iniciada · usa Siguiente";
-  clearInterval(HOST_SHOW.timerIv);
-  HOST_SHOW.revealed = false;
+  $("#btnHostAction").textContent = "✓ Partida en curso";
   broadcastPacket({ kind: "host_ready", mode: HOST_SHOW.deckMode });
-  broadcastHostQuestion();
-  renderHostStage();
-  var left = 10;
-  $("#hostTimerDisplay").textContent = "⏱ Votando: " + left + " s";
-  HOST_SHOW.timerIv = setInterval(function(){
-    left--;
-    if(left > 0){
-      sfxTick();
-      $("#hostTimerDisplay").textContent = "⏱ Votando: " + left + " s";
-    } else {
-      clearInterval(HOST_SHOW.timerIv);
-      HOST_SHOW.revealed = true;
-      broadcastHostReveal();
-      sfxHit();
-      renderHostStage();
-    }
-  }, 1000);
+  beginHostQuestion();
 });
 $("#btnHostMinus1").addEventListener("click", function(){
   HOST_SHOW.standing = Math.max(0, HOST_SHOW.standing - 1);
