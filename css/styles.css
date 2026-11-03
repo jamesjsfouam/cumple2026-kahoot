@@ -944,6 +944,29 @@ textarea.input {
   box-shadow: 0 24px 70px rgba(10,15,38,0.32);
   animation: waitingEnter 480ms var(--ease-quiet);
 }
+.player-flow-step .friend-step-avatar { display: none; }
+.player-flow-step.avatar .friend-step-register { display: none; }
+.player-flow-step.avatar .friend-step-avatar { display: flex; }
+.player-flow-step.avatar #playerAvatarStep { display: block; }
+.player-flow-step.avatar #playerAvatarActions { display: none; }
+.player-flow-step.register .friend-step-register { display: flex; }
+.player-flow-step.register #playerAvatarStep,
+.player-flow-step.register #playerAvatarActions { display: none; }
+body.player-only #playerLobbyCard {
+  min-height: calc(100vh - 56px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+body.player-only #playerLobbyCard.player-flow-step.avatar #playerAvatarStep {
+  max-width: 580px;
+  margin: 0 auto;
+  width: 100%;
+}
+body.player-only #playerLobbyCard .friend-step-register,
+body.player-only #playerLobbyCard .friend-step-avatar {
+  transition: opacity 180ms ease, transform 180ms ease;
+}
 .kahoot-waiting-card[hidden] { display: none; }
 @keyframes waitingEnter {
   from { opacity: 0; transform: scale(0.94) translateY(20px); }
@@ -1051,6 +1074,53 @@ textarea.input {
 .podium-info { flex: 1; }
 .podium-name { font-weight: 800; }
 .podium-score { color: var(--gold-night); font-family: "JetBrains Mono", monospace; font-size: 0.8rem; }
+.host-live-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(250px, 0.34fr);
+  gap: 14px;
+  margin-top: 16px;
+}
+.host-question-summary,
+.host-top-panel {
+  padding: 14px;
+  border: 1px solid rgba(226,185,75,0.28);
+  border-radius: 14px;
+  background: rgba(15,22,54,0.72);
+  color: #fff;
+}
+.host-summary-kicker {
+  color: var(--gold-night);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+}
+.host-question-podium {
+  display: grid;
+  gap: 7px;
+  min-height: 92px;
+  align-content: center;
+  color: #A5AECB;
+}
+.host-top-panel { max-height: 260px; overflow-y: auto; }
+.host-rank-row,
+.host-podium-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border-radius: 9px;
+  background: rgba(255,255,255,0.07);
+  font-size: 0.78rem;
+}
+.host-rank-row strong,
+.host-podium-row span:last-child { margin-left: auto; color: var(--gold-night); }
+.host-rank-number { width: 18px; color: #A5AECB; font-family: "JetBrains Mono", monospace; }
+.host-rank-avatar { font-size: 1.15rem; }
+.host-rank-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.host-empty-score { color: #A5AECB; }
+@media (max-width: 720px) {
+  .host-live-layout { grid-template-columns: 1fr; }
+}
 @keyframes podiumRise {
   from { opacity: 0; transform: translateY(18px); }
   to { opacity: 1; transform: translateY(0); }

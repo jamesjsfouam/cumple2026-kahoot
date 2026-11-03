@@ -278,7 +278,7 @@
         Escribe tu nombre, elige un personaje y entra a la sala. Espera al anfitrión: la partida comenzará para todos al mismo tiempo.
       </p>
 
-      <div class="grid-2" style="margin-bottom: 16px;">
+      <div class="grid-2 friend-step friend-step-register" id="playerRegisterStep" style="margin-bottom: 16px;">
         <label class="field-label">
           Tu nombre o apodo (elige de la lista o escribe el tuyo)
           <input class="input" id="plNameInput" type="text" placeholder="Ej. Melissa, Fidel, Alejandro, Samantha..." maxlength="40">
@@ -289,17 +289,20 @@
         </label>
       </div>
 
-      <div class="character-picker" style="margin-bottom: 18px;">
+      <button class="btn btn-lg btn-gold friend-step friend-step-register" id="btnToAvatarStep" type="button">Continuar →</button>
+
+      <div class="character-picker friend-step friend-step-avatar" id="playerAvatarStep" style="margin-bottom: 18px;">
         <div class="mono character-picker-title">elige tu personaje</div>
         <div class="character-grid" id="plCharacterGrid"></div>
+        <button class="btn btn-lg btn-gold" id="btnToLobbyStep" type="button">Confirmar personaje →</button>
       </div>
 
-      <div style="margin-bottom: 18px;">
+      <div class="friend-step friend-step-register" id="playerGuestStep" style="margin-bottom: 18px;">
         <div class="mono" style="color:var(--graphite); margin-bottom: 6px;">invitados confirmados (toca tu nombre para autocompletar):</div>
         <div class="chip-list" id="plQuickFriendsChips"></div>
       </div>
 
-      <div class="grid-2 friend-settings" style="margin-bottom: 20px;">
+      <div class="grid-2 friend-settings friend-step friend-step-register" style="margin-bottom: 20px;">
         <label class="field-label">
           Modalidad del reto
           <select class="select" id="plModeSelect">
@@ -318,7 +321,7 @@
         </label>
       </div>
 
-      <div class="toolbar" style="justify-content: space-between; padding-top: 14px; border-top: 1px solid var(--rule);">
+      <div id="playerAvatarActions" class="toolbar friend-step friend-step-avatar" style="justify-content: space-between; padding-top: 14px; border-top: 1px solid var(--rule);">
         <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-size:0.86rem;">
           <input type="checkbox" id="plSoundChk" checked> Efectos de sonido de duelo
         </label>
@@ -490,6 +493,18 @@
           <button class="btn btn-quiet" id="btnHostNext" type="button" style="background:#16204A; color:#fff; border-color:#3B4A8B;">Saltar →</button>
         </div>
         <span class="mono" style="color:#A5AECB;" id="hostVotesCounterTxt">0 respuestas registradas en esta pregunta</span>
+      </div>
+      <div class="host-live-layout">
+        <div class="host-question-summary">
+          <div class="mono host-summary-kicker">✦ marcador de la pregunta</div>
+          <div id="hostQuestionPodium" class="host-question-podium">
+            <span class="mono">El podio aparecerá al revelar la respuesta.</span>
+          </div>
+        </div>
+        <aside class="host-top-panel">
+          <div class="mono host-summary-kicker">top 10 · puntuación en vivo</div>
+          <div id="hostTopTen"></div>
+        </aside>
       </div>
     </div>
   </section>

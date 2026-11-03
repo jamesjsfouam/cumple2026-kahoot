@@ -144,6 +144,7 @@ if(!STATE.tasks){
   ];
 }
 if(!STATE.liveFeed) STATE.liveFeed = [];
+if(!STATE.liveAnswerIds) STATE.liveAnswerIds = [];
 
 function saveState(){
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE)); } catch(e){}
@@ -390,6 +391,11 @@ function broadcastPacket(packet){
 function handleIncomingNetworkPayload(data, sourceLabel){
   if(!data || !data.kind) return;
   if(data.kind === "answer_step"){
+    if(data.answerId && STATE.liveAnswerIds.indexOf(data.answerId) >= 0) return;
+    if(data.answerId){
+      STATE.liveAnswerIds.push(data.answerId);
+      if(STATE.liveAnswerIds.length > 500) STATE.liveAnswerIds.shift();
+    }
     var msg = data.player + (data.correct ? " acertó " : " falló ") + data.uid +
       " · " + (data.choiceText || "sin respuesta") + " en " + (data.ms / 1000).toFixed(1) +
       " s (" + (data.correct ? "+" + data.pts + " pts" : "-1000 LP") + ")";
@@ -397,6 +403,7 @@ function handleIncomingNetworkPayload(data, sourceLabel){
     if(STATE.liveFeed.length > 35) STATE.liveFeed.length = 35;
     saveState();
     renderLiveFeed();
+    updateLivePlayerScore(data);
   } else if(data.kind === "player_join"){
     if(data.player){
       PL_GAME.participants[data.player] = {
@@ -446,6 +453,48 @@ function upsertSubmission(sub, notify){
     if(STATE.submissions[i].id === sub.id || (STATE.submissions[i].name.toLowerCase() === sub.name.toLowerCase() && !sub.keepSeparate)){
       existingIdx = i;
       break;
+    }
+
+    function updateLivePlayerScore(data){
+      if(!data.player) return;
+      var current = STATE.submissions.filter(function(player){
+        return player.name.toLowerCase() === data.player.toLowerCase();
+      })[0];
+      if(!current){
+        current = {
+          id: "live_" + data.player.toLowerCase().replace(/[^a-z0-9]/g, ""),
+          name: data.player,
+          character: data.character || "🧙",
+          mode: data.mode || "full",
+          totalQuestions: getCombinedDeck(data.mode || "full").length,
+          correct: 0,
+          acc: 0,
+          score: 0,
+          avgSec: 0,
+          maxStreak: 0,
+          lp: 8000,
+          rank: "En partida",
+          isSim: false,
+          answers: []
+        };
+        STATE.submissions.push(current);
+      }
+      current.character = data.character || current.character;
+      current.score = data.score !== undefined ? data.score : current.score;
+      current.lp = data.lp !== undefined ? data.lp : current.lp;
+      current.correct = data.correct ? current.correct + 1 : current.correct;
+      current.acc = current.totalQuestions ? Math.round((current.correct / current.totalQuestions) * 100) : 0;
+      current.avgSec = data.ms ? +(((current.avgSec * Math.max(0, current.answers.length)) + data.ms / 1000) / (current.answers.length + 1)).toFixed(2) : current.avgSec;
+      current.maxStreak = Math.max(current.maxStreak, data.streak || 0);
+      current.answers.push({
+        uid: data.uid,
+        choice: data.choice,
+        correct: !!data.correct,
+        ms: data.ms || 0,
+        pts: data.pts || 0
+      });
+      saveState();
+      renderHostScoreboard();
     }
   }
   if(existingIdx >= 0){
@@ -1052,6 +1101,24 @@ function renderCharacterPicker(){
   }).join("");
 }
 
+function setFriendFlowStep(step){
+  var lobby = $("#playerLobbyCard");
+  if(!lobby) return;
+  lobby.classList.add("player-flow-step");
+  lobby.classList.remove("register", "avatar");
+  lobby.classList.add(step);
+}
+
+function validatePlayerRegistration(){
+  var name = ($("#plNameInput").value || "").trim();
+  if(!name){
+    toast("Escribe tu nombre para continuar.");
+    $("#plNameInput").focus();
+    return false;
+  }
+  return true;
+}
+
 function getCharacterEmoji(emoji){
   return emoji || "🧙";
 }
@@ -1118,12 +1185,8 @@ function renderQuickFriendChips(){
 }
 
 function startPlayerKahoot(){
+  if(!validatePlayerRegistration()) return;
   var name = ($("#plNameInput").value || "").trim();
-  if(!name){
-    toast("Escribe tu nombre o toca tu chip de invitado para empezar.");
-    $("#plNameInput").focus();
-    return;
-  }
   var pin = ($("#plPinInput").value || "1926").trim();
   if(pin !== STATE.roomPin){
     STATE.roomPin = pin;
@@ -1290,6 +1353,7 @@ function submitPlayerChoice(choiceIdx){
   /* Emitir telemetría en vivo paso a paso */
   broadcastPacket({
     kind: "answer_step",
+    answerId: PL_GAME.name + "_" + PL_GAME.idx + "_" + Date.now(),
     player: PL_GAME.name,
     roundIdx: PL_GAME.idx,
     uid: item.uid,
@@ -1297,7 +1361,12 @@ function submitPlayerChoice(choiceIdx){
     choiceText: choiceIdx >= 0 ? item.o[choiceIdx] : "sin respuesta",
     correct: isCorrect,
     ms: elapsedMs,
-    pts: pts
+    pts: pts,
+    score: PL_GAME.score,
+    lp: PL_GAME.lp,
+    streak: PL_GAME.streak,
+    character: PL_GAME.character,
+    mode: PL_GAME.mode
   });
 }
 
@@ -1443,6 +1512,37 @@ function renderHostStage(){
     $("#hostAnswerBanner").textContent = "✦ Respuesta correcta: Opción " + numFinger + " («" + item.o[item.a] + "»). Quien no mostró " + numFinger + (numFinger === 1 ? " dedo" : " dedos") + " pierde 1000 LP y se sienta.";
   }
   $("#hostVotesCounterTxt").textContent = (qStats ? qStats.attempts : 0) + " respuestas registradas en esta carta";
+  renderHostScoreboard();
+}
+
+function renderHostScoreboard(){
+  var top = $("#hostTopTen");
+  var podium = $("#hostQuestionPodium");
+  if(!top || !podium) return;
+  var players = STATE.submissions.slice().sort(function(a, b){
+    if(b.score !== a.score) return b.score - a.score;
+    return a.avgSec - b.avgSec;
+  });
+  top.innerHTML = players.slice(0, 10).map(function(player, index){
+    return '<div class="host-rank-row">' +
+      '<span class="host-rank-number">' + (index + 1) + '</span>' +
+      '<span class="host-rank-avatar">' + getCharacterEmoji(player.character) + '</span>' +
+      '<span class="host-rank-name">' + esc(player.name) + '</span>' +
+      '<strong>' + (player.score || 0).toLocaleString("es-NI") + '</strong>' +
+    '</div>';
+  }).join("") || '<div class="mono host-empty-score">Esperando jugadores…</div>';
+
+  if(!HOST_SHOW.revealed){
+    podium.innerHTML = '<span class="mono">El podio aparecerá al revelar la respuesta.</span>';
+    return;
+  }
+  podium.innerHTML = players.slice(0, 3).map(function(player, index){
+    var medals = ["🥇", "🥈", "🥉"];
+    return '<div class="host-podium-row">' +
+      '<span>' + medals[index] + '</span><span class="host-rank-avatar">' + getCharacterEmoji(player.character) + '</span>' +
+      '<strong>' + esc(player.name) + '</strong><span>' + (player.score || 0).toLocaleString("es-NI") + ' pts</span>' +
+    '</div>';
+  }).join("") || '<span class="mono">Aún no hay respuestas.</span>';
 }
 
 function stopHostClock(){
@@ -2043,6 +2143,12 @@ $("#plCharacterGrid").addEventListener("click", function(e){
     renderCharacterPicker();
   }
 });
+$("#btnToAvatarStep").addEventListener("click", function(){
+  if(validatePlayerRegistration()) setFriendFlowStep("avatar");
+});
+$("#btnToLobbyStep").addEventListener("click", function(){
+  startPlayerKahoot();
+});
 $("#plMusicChk").addEventListener("change", function(e){
   if(e.target.checked && PL_GAME.active) startBackgroundMusic();
   else stopBackgroundMusic();
@@ -2366,6 +2472,7 @@ if(window.__PRELOADED_CONFIG__){
 }
 
 renderCharacterPicker();
+setFriendFlowStep("register");
 renderQuickFriendChips();
 connectLiveRoom();
 
