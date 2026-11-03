@@ -398,6 +398,13 @@ function handleIncomingNetworkPayload(data, sourceLabel){
     saveState();
     renderLiveFeed();
   } else if(data.kind === "player_join"){
+    if(data.player){
+      PL_GAME.participants[data.player] = {
+        name: data.player,
+        character: data.character || "🧙"
+      };
+      if(PLAYER_ONLY_MODE && PL_GAME.waitingForHost) renderWaitingPlayers();
+    }
     if(!PLAYER_ONLY_MODE){
       STATE.liveFeed.unshift({ txt: data.player + " entró a la sala.", ts: "ahora · " + sourceLabel, ok: true });
       if(STATE.liveFeed.length > 35) STATE.liveFeed.length = 35;
@@ -413,7 +420,11 @@ function handleIncomingNetworkPayload(data, sourceLabel){
       PL_GAME.mode = data.mode || PL_GAME.mode;
       PL_GAME.secLimit = +data.limitSec || PL_GAME.secLimit;
       PL_GAME.waitingForHost = true;
-      showPlayerWaiting("James preparó la sala. Espera a que inicie el reloj.");
+      showPlayerWaiting("James preparó la partida. Espera a que pulse «Listo»…");
+    }
+  } else if(data.kind === "host_ready"){
+    if(PLAYER_ONLY_MODE && PL_GAME.active && PL_GAME.waitingForHost){
+      $("#waitingStatusText").textContent = "¡James está listo! La primera pregunta está por comenzar…";
     }
   } else if(data.kind === "host_reveal"){
     if(PLAYER_ONLY_MODE && PL_GAME.active && !PL_GAME.answeredCurrent){
@@ -1001,6 +1012,7 @@ var PL_GAME = {
   active: false,
   waitingForHost: false,
   character: "🧙",
+  participants: {},
   name: "",
   mode: "full",
   secLimit: 15,
@@ -1046,17 +1058,41 @@ function getCharacterEmoji(emoji){
 
 function showPlayerWaiting(message){
   $("#playerLobbyCard").hidden = true;
+  $("#playerWaitingCard").hidden = false;
   $("#playerResultCard").hidden = true;
+  $("#playerActiveStage").hidden = true;
+  $("#waitingPinText").textContent = STATE.roomPin;
+  $("#waitingAvatar").textContent = PL_GAME.character;
+  $("#waitingPlayerName").textContent = PL_GAME.name;
+  $("#waitingStatusText").textContent = message || "Esperando al anfitrión…";
+  renderWaitingPlayers();
+}
+
+function renderWaitingPlayers(){
+  var list = $("#waitingPlayersList");
+  if(!list) return;
+  var names = Object.keys(PL_GAME.participants).map(function(key){
+    return PL_GAME.participants[key];
+  });
+  if(PL_GAME.name && !PL_GAME.participants[PL_GAME.name]){
+    names.push({ name: PL_GAME.name, character: PL_GAME.character });
+  }
+  var unique = {};
+  names = names.filter(function(player){
+    var key = String(player.name || "").toLowerCase();
+    if(!key || unique[key]) return false;
+    unique[key] = true;
+    return true;
+  });
+  list.innerHTML = names.map(function(player){
+    return '<span class="waiting-player-chip">' + getCharacterEmoji(player.character) + ' ' + esc(player.name) + '</span>';
+  }).join("");
+}
+
+function hidePlayerWaiting(){
+  $("#playerWaitingCard").hidden = true;
   $("#playerActiveStage").hidden = false;
   $("#plFeedbackBox").hidden = false;
-  $("#plFeedbackTitle").textContent = "⌛ Esperando a James";
-  $("#plFeedbackSub").textContent = message || "James iniciará la siguiente carta desde su panel.";
-  $("#btnNextPlayerQuestion").hidden = true;
-  $("#plQuestionText").textContent = "La partida comenzará en breve";
-  $("#plCatBadge").textContent = "sala " + STATE.roomPin;
-  $("#plOptionsGrid").innerHTML = "";
-  $("#plTimeBarFill").style.width = "100%";
-  $("#plTimeLeftTxt").textContent = "en espera";
 }
 
 function startPlayerRound(round){
@@ -1066,6 +1102,7 @@ function startPlayerRound(round){
   PL_GAME.deck = getCombinedDeck(PL_GAME.mode);
   PL_GAME.idx = Math.max(0, Math.min(+round.idx || 0, PL_GAME.deck.length - 1));
   PL_GAME.waitingForHost = false;
+  hidePlayerWaiting();
   $("#btnNextPlayerQuestion").hidden = false;
   renderPlayerCurrentCard(+round.startedAt || Date.now());
 }
@@ -1108,13 +1145,15 @@ function startPlayerKahoot(){
   PL_GAME.answers = [];
   PL_GAME.active = true;
   PL_GAME.waitingForHost = true;
+  PL_GAME.participants = {};
+  PL_GAME.participants[PL_GAME.name] = { name: PL_GAME.name, character: PL_GAME.character };
   broadcastPacket({
     kind: "player_join",
     player: PL_GAME.name,
     character: PL_GAME.character,
     mode: PL_GAME.mode
   });
-  showPlayerWaiting("Ya estás dentro de la sala. James controlará el inicio y cada pregunta.");
+  showPlayerWaiting("Esperando a que James pulse «Listo»…");
 }
 
 function renderPlayerCurrentCard(startedAt){
@@ -1353,6 +1392,7 @@ var HOST_SHOW = {
   deckMode: "all",
   idx: 0,
   revealed: false,
+  started: false,
   standing: 32,
   timerIv: null
 };
@@ -1990,16 +2030,26 @@ $("#hostDeckSelect").addEventListener("change", function(e){
   HOST_SHOW.deckMode = e.target.value;
   HOST_SHOW.idx = 0;
   HOST_SHOW.revealed = false;
+  HOST_SHOW.started = false;
+  $("#btnHostAction").textContent = "✦ Listo: iniciar partida";
   broadcastPacket({ kind: "host_session_start", mode: HOST_SHOW.deckMode, limitSec: 10 });
   renderHostStage();
 });
 $("#btnHostPrev").addEventListener("click", function(){
+  if(!HOST_SHOW.started){
+    toast("Pulsa «Listo: iniciar partida» primero.");
+    return;
+  }
   HOST_SHOW.idx--;
   HOST_SHOW.revealed = false;
   broadcastHostQuestion();
   renderHostStage();
 });
 $("#btnHostNext").addEventListener("click", function(){
+  if(!HOST_SHOW.started){
+    toast("Pulsa «Listo: iniciar partida» primero.");
+    return;
+  }
   var deckLength = getCombinedDeck(HOST_SHOW.deckMode).length;
   if(HOST_SHOW.idx >= deckLength - 1){
     broadcastPacket({ kind: "host_end" });
@@ -2014,6 +2064,10 @@ $("#btnHostNext").addEventListener("click", function(){
   renderHostStage();
 });
 $("#btnHostRevealNow").addEventListener("click", function(){
+  if(!HOST_SHOW.started){
+    toast("Pulsa «Listo: iniciar partida» primero.");
+    return;
+  }
   clearInterval(HOST_SHOW.timerIv);
   HOST_SHOW.revealed = true;
   broadcastHostReveal();
@@ -2021,8 +2075,15 @@ $("#btnHostRevealNow").addEventListener("click", function(){
   renderHostStage();
 });
 $("#btnHostAction").addEventListener("click", function(){
+  if(HOST_SHOW.started){
+    toast("La partida ya comenzó. Usa «Siguiente» para cambiar de carta.");
+    return;
+  }
+  HOST_SHOW.started = true;
+  $("#btnHostAction").textContent = "✓ Partida iniciada · usa Siguiente";
   clearInterval(HOST_SHOW.timerIv);
   HOST_SHOW.revealed = false;
+  broadcastPacket({ kind: "host_ready", mode: HOST_SHOW.deckMode });
   broadcastHostQuestion();
   renderHostStage();
   var left = 10;
@@ -2287,6 +2348,7 @@ connectLiveRoom();
 
 if(PLAYER_ONLY_MODE){
   /* Si es el archivo descargado para amigos, oculta navegación de Admin y abre directo en Kahoot */
+  document.body.classList.add("player-only");
   $("#mainNavStrip").style.display = "none";
   $("#btnDownloadFriendsHtml").style.display = "none";
   switchView("player-kahoot");

@@ -57,6 +57,13 @@ body {
   font-variant-numeric: tabular-nums;
   transition: background-color 260ms var(--ease-quiet), color 260ms var(--ease-quiet);
 }
+body.player-only {
+  background:
+    radial-gradient(circle at 15% 10%, rgba(236,92,154,0.12), transparent 30%),
+    var(--night);
+}
+body.player-only .masthead { display: none; }
+body.player-only .container { max-width: 980px; padding-top: 28px; }
 button, input, select, textarea { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--ability); outline-offset: 2px; }
 h1, h2, h3, h4, p { margin: 0; }
@@ -824,6 +831,103 @@ textarea.input {
   border-radius: 16px;
   padding: 16px;
   margin-bottom: 20px;
+}
+.kahoot-waiting-card {
+  max-width: 720px;
+  margin: 0 auto;
+  min-height: 560px;
+  padding: clamp(28px, 7vw, 72px) 24px;
+  border-radius: 24px;
+  text-align: center;
+  color: #fff;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(236,92,154,0.42), transparent 34%),
+    radial-gradient(circle at 80% 75%, rgba(124,92,255,0.45), transparent 38%),
+    linear-gradient(145deg, #151d52, #080c22);
+  border: 2px solid rgba(226,185,75,0.8);
+  box-shadow: 0 24px 70px rgba(10,15,38,0.32);
+  animation: waitingEnter 480ms var(--ease-quiet);
+}
+.kahoot-waiting-card[hidden] { display: none; }
+@keyframes waitingEnter {
+  from { opacity: 0; transform: scale(0.94) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.waiting-kicker {
+  color: #A5AECB;
+  font: 700 0.75rem/1.2 "JetBrains Mono", monospace;
+  letter-spacing: 0.08em;
+}
+.waiting-kicker strong { color: var(--gold-night); }
+.waiting-avatar {
+  display: grid;
+  place-items: center;
+  width: 104px;
+  height: 104px;
+  margin: 28px auto 16px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #EC5C9A, #7C5CFF);
+  border: 4px solid #fff;
+  font-size: 4rem;
+  animation: avatarFloat 2.4s ease-in-out infinite;
+}
+@keyframes avatarFloat {
+  50% { transform: translateY(-8px) rotate(3deg); }
+}
+.waiting-title {
+  font: 400 clamp(2.4rem, 8vw, 4.2rem)/1 "Instrument Serif", Georgia, serif;
+}
+.waiting-name {
+  margin-top: 10px;
+  color: var(--gold-night);
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+.waiting-copy {
+  max-width: 38ch;
+  margin: 18px auto;
+  color: #D5D9EA;
+}
+.waiting-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.24);
+  color: #fff;
+  font: 600 0.8rem "JetBrains Mono", monospace;
+}
+.waiting-pulse {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #5EEAD4;
+  box-shadow: 0 0 0 0 rgba(94,234,212,0.65);
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+  70% { box-shadow: 0 0 0 9px rgba(94,234,212,0); }
+  100% { box-shadow: 0 0 0 0 rgba(94,234,212,0); }
+}
+.waiting-players {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 7px;
+  margin: 24px auto 0;
+  max-width: 520px;
+}
+.waiting-player-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 999px;
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  font-size: 0.78rem;
 }
 .podium-title {
   font-family: "Instrument Serif", Georgia, serif;

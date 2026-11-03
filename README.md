@@ -12,8 +12,11 @@
 1. Abre `index.html` desde un servidor web local o desde GitHub Pages.
 2. En la vista **Pantalla Show en Vivo**, James inicia cada carta.
 3. Comparte el HTML de amigos desde el botón de descarga.
-4. Los jugadores escriben su nombre y pulsan **Entrar a la partida**.
-5. James controla el inicio, la revelación y el avance; las respuestas aparecen en el panel de telemetría.
+4. Los jugadores escriben su nombre, eligen personaje y pulsan **Entrar a la sala**.
+5. Cada jugador pasa a una sala de espera visual con su avatar y espera a James.
+6. James pulsa **Listo: iniciar partida** una sola vez; la primera carta aparece para todos.
+7. James usa **Siguiente** para cambiar de carta. En cuanto aparece una carta, los jugadores pueden responder y el reloj corre sincronizado.
+8. Al terminar, cada jugador ve el podio final y James recibe todas las respuestas en el panel de telemetría.
 
 Para compartir directamente con los amigos usa:
 `https://jamesjsfouam.github.io/cumple2026-kahoot/amigos.html`

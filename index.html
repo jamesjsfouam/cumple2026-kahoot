@@ -274,7 +274,7 @@
       </div>
 
       <p style="color:var(--graphite); margin-bottom: 18px;">
-        Entra con tu nombre y espera a James: él inicia y controla cada carta para que todos respondan al mismo tiempo. Ganas hasta <strong>1,000 puntos por pregunta</strong> según tu velocidad y multiplicas tu racha. Tus respuestas llegan en directo al panel de James.
+        Regístrate para entrar a la sala. Cuando todos estén dentro, James pulsará <strong>Listo</strong> y la partida comenzará para todos al mismo tiempo.
       </p>
 
       <div class="grid-2" style="margin-bottom: 16px;">
@@ -298,7 +298,7 @@
         <div class="chip-list" id="plQuickFriendsChips"></div>
       </div>
 
-      <div class="grid-2" style="margin-bottom: 20px;">
+      <div class="grid-2 friend-settings" style="margin-bottom: 20px;">
         <label class="field-label">
           Modalidad del reto
           <select class="select" id="plModeSelect">
@@ -325,9 +325,19 @@
           <input type="checkbox" id="plMusicChk" checked> Música de fondo
         </label>
         <button class="btn btn-lg btn-gold" id="btnStartPlayerGame" type="button">
-          ✦ Entrar a la partida
+          ✦ Entrar a la sala
         </button>
       </div>
+    </div>
+
+    <div id="playerWaitingCard" class="kahoot-waiting-card" hidden>
+      <div class="waiting-kicker">SALA DE JUEGO · PIN <strong id="waitingPinText">1926</strong></div>
+      <div class="waiting-avatar" id="waitingAvatar">🧙</div>
+      <h2 class="waiting-title">¡Estás dentro!</h2>
+      <p class="waiting-name" id="waitingPlayerName">Jugador</p>
+      <p class="waiting-copy">Mira la pantalla principal. James iniciará la partida cuando todos estén listos.</p>
+      <div class="waiting-status"><span class="waiting-pulse"></span><span id="waitingStatusText">Esperando al anfitrión…</span></div>
+      <div class="waiting-players" id="waitingPlayersList"></div>
     </div>
 
     <!-- Escenario activo del jugador -->
@@ -474,7 +484,7 @@
       <div class="toolbar" style="justify-content: space-between; margin-top: 22px; padding-top: 14px; border-top: 1px solid rgba(226,185,75,0.28);">
         <div class="toolbar">
           <button class="btn btn-quiet" id="btnHostPrev" type="button" style="background:#16204A; color:#fff; border-color:#3B4A8B;">← Anterior</button>
-          <button class="btn btn-lg btn-gold" id="btnHostAction" type="button">✦ Iniciar carta para todos (10 s)</button>
+          <button class="btn btn-lg btn-gold" id="btnHostAction" type="button">✦ Listo: iniciar partida</button>
           <button class="btn btn-quiet" id="btnHostRevealNow" type="button" style="background:#16204A; color:#fff; border-color:#3B4A8B;">Revelar Carta</button>
           <button class="btn btn-quiet" id="btnHostNext" type="button" style="background:#16204A; color:#fff; border-color:#3B4A8B;">Siguiente →</button>
         </div>
