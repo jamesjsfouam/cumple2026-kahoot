@@ -611,6 +611,12 @@ textarea.input {
   pointer-events: none;
 }
 .duel-stage > * { position: relative; z-index: 2; }
+.duel-stage.question-enter { animation: questionEnter 520ms var(--ease-quiet); }
+@keyframes questionEnter {
+  0% { opacity: 0; transform: scale(0.97) translateY(12px); }
+  60% { opacity: 1; transform: scale(1.01) translateY(-2px); }
+  100% { transform: scale(1) translateY(0); }
+}
 
 .duel-hud {
   display: flex;
@@ -658,6 +664,11 @@ textarea.input {
 .duel-question-box {
   margin: 26px 0 22px;
   text-align: center;
+}
+.duel-question-box.question-pop { animation: questionPop 420ms var(--ease-quiet); }
+@keyframes questionPop {
+  from { opacity: 0; transform: translateY(14px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 .duel-cat-badge {
   display: inline-block;
@@ -710,6 +721,13 @@ textarea.input {
   transform: translateY(-4px);
   box-shadow: var(--shadow-lift), inset 0 0 0 3px #FBFAF6, inset 0 0 0 4px var(--gold);
 }
+.duel-card.answer-enter {
+  animation: answerEnter 420ms var(--ease-quiet) both;
+}
+@keyframes answerEnter {
+  from { opacity: 0; transform: translateY(18px) scale(0.94); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
 .duel-card[disabled] { cursor: default; }
 
 .duel-shape {
@@ -756,6 +774,86 @@ textarea.input {
   background: #FEE4E2;
   color: #991B1B;
   border-color: #EF4444;
+}
+
+.character-picker {
+  padding: 14px;
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  background: var(--sand);
+}
+.character-picker-title {
+  color: var(--graphite);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+.character-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(82px, 1fr));
+  gap: 8px;
+}
+.character-choice {
+  border: 2px solid transparent;
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--ink);
+  padding: 8px 5px;
+  cursor: pointer;
+  transition: transform 160ms var(--ease-quiet), border-color 160ms, background-color 160ms;
+}
+.character-choice:hover { transform: translateY(-3px); border-color: var(--gold); }
+.character-choice.selected {
+  border-color: var(--pink);
+  background: var(--pink-soft);
+  box-shadow: 0 0 0 3px rgba(236,92,154,0.18);
+}
+.character-avatar {
+  display: block;
+  font-size: 2rem;
+  line-height: 1.1;
+}
+.character-name {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin-top: 3px;
+}
+.podium-card {
+  background: linear-gradient(135deg, rgba(226,185,75,0.18), rgba(124,92,255,0.13));
+  border: 2px solid var(--gold);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+.podium-title {
+  font-family: "Instrument Serif", Georgia, serif;
+  font-size: 1.6rem;
+  margin-bottom: 12px;
+}
+.podium-list {
+  display: grid;
+  gap: 8px;
+}
+.podium-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(15,22,54,0.72);
+  color: #fff;
+  animation: podiumRise 500ms var(--ease-quiet) both;
+}
+.podium-row:nth-child(2) { animation-delay: 100ms; }
+.podium-row:nth-child(3) { animation-delay: 200ms; }
+.podium-medal { font-size: 1.5rem; }
+.podium-avatar { font-size: 1.8rem; }
+.podium-info { flex: 1; }
+.podium-name { font-weight: 800; }
+.podium-score { color: var(--gold-night); font-family: "JetBrains Mono", monospace; font-size: 0.8rem; }
+@keyframes podiumRise {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Modal & Toast */

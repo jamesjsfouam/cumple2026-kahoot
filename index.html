@@ -288,6 +288,11 @@
         </label>
       </div>
 
+      <div class="character-picker" style="margin-bottom: 18px;">
+        <div class="mono character-picker-title">elige tu personaje</div>
+        <div class="character-grid" id="plCharacterGrid"></div>
+      </div>
+
       <div style="margin-bottom: 18px;">
         <div class="mono" style="color:var(--graphite); margin-bottom: 6px;">invitados confirmados (toca tu nombre para autocompletar):</div>
         <div class="chip-list" id="plQuickFriendsChips"></div>
@@ -315,6 +320,9 @@
       <div class="toolbar" style="justify-content: space-between; padding-top: 14px; border-top: 1px solid var(--rule);">
         <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-size:0.86rem;">
           <input type="checkbox" id="plSoundChk" checked> Efectos de sonido de duelo
+        </label>
+        <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-size:0.86rem;">
+          <input type="checkbox" id="plMusicChk" checked> Música de fondo
         </label>
         <button class="btn btn-lg btn-gold" id="btnStartPlayerGame" type="button">
           ✦ Entrar a la partida
@@ -381,6 +389,10 @@
       </div>
 
       <div class="cifras-grid" id="plResKpis" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); margin-bottom: 20px;"></div>
+      <div class="podium-card" id="playerPodiumCard">
+        <div class="podium-title">🏆 Podio de la sala</div>
+        <div class="podium-list" id="playerPodiumList"></div>
+      </div>
 
       <!-- Respaldo para enviar por WhatsApp o copiar código -->
       <div style="background: var(--sand); border: 1px solid var(--rule); border-radius: 14px; padding: 16px; margin-bottom: 20px;">

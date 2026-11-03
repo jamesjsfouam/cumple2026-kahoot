@@ -452,6 +452,7 @@ function upsertSubmission(sub, notify){
   if(notify){
     toast("Nuevo resultado recibido: " + sub.name + " (" + sub.score.toLocaleString("es-NI") + " pts)");
   }
+  if(PLAYER_ONLY_MODE && !$("#playerResultCard").hidden) renderPlayerPodium();
 }
 
 /* =========================================================================
@@ -460,6 +461,7 @@ function upsertSubmission(sub, notify){
 function encodeSubmissionToken(sub){
   var compact = {
     n: sub.name,
+    h: sub.character || "🧙",
     m: sub.mode,
     s: sub.score,
     c: sub.correct,
@@ -484,6 +486,7 @@ function decodeSubmissionToken(tokenStr){
   return {
     id: "imp_" + c.n.toLowerCase().replace(/[^a-z0-9]/g, "") + "_" + Date.now().toString(36),
     name: c.n || "Amigo",
+    character: c.h || "🧙",
     mode: c.m || "full",
     totalQuestions: c.t || 21,
     correct: c.c || 0,
@@ -505,6 +508,9 @@ function decodeSubmissionToken(tokenStr){
    SONIDOS SINTETIZADOS (WEB AUDIO API)
    ========================================================================= */
 var audioCtx = null;
+var musicTimer = null;
+var musicStep = 0;
+var musicPlaying = false;
 function playTone(freq, dur, type, vol){
   var chk = $("#plSoundChk");
   if(chk && !chk.checked) return;
@@ -532,6 +538,32 @@ function sfxMiss(){
   setTimeout(function(){ playTone(165, 0.35, "sawtooth", 0.08); }, 140);
 }
 function sfxTick(){ playTone(740, 0.07, "sine", 0.05); }
+
+function playMusicStep(){
+  if(!musicPlaying) return;
+  var notes = [261.63, 329.63, 392.00, 523.25, 392.00, 329.63, 293.66, 392.00];
+  playTone(notes[musicStep % notes.length], 0.28, "triangle", 0.025);
+  musicStep++;
+  musicTimer = setTimeout(playMusicStep, 420);
+}
+
+function startBackgroundMusic(){
+  var chk = $("#plMusicChk");
+  if(chk && !chk.checked) return;
+  if(musicPlaying) return;
+  try {
+    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(audioCtx.state === "suspended") audioCtx.resume();
+  } catch(e){}
+  musicPlaying = true;
+  playMusicStep();
+}
+
+function stopBackgroundMusic(){
+  musicPlaying = false;
+  clearTimeout(musicTimer);
+  musicTimer = null;
+}
 
 /* =========================================================================
    RENDERIZADO DE ANALÍTICA Y ESTADÍSTICAS DEL PANEL DE ADMINISTRADOR
@@ -682,7 +714,7 @@ function renderPodium(){
     return '<div style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 14px; border-radius:12px; background:' + (idx === 0 ? "var(--sand)" : "var(--paper)") + '; border:1px solid ' + (idx === 0 ? "var(--gold)" : "var(--rule)") + ';">' +
       '<div>' +
         '<div class="mono" style="color:' + (idx === 0 ? "var(--gold)" : "var(--graphite)") + ';">' + medals[idx] + '</div>' +
-        '<div style="font-weight:700; font-size:1.05rem; margin-top:2px;">' + esc(s.name) + ' <span class="badge badge-ok">' + s.acc + '% (' + s.correct + '/' + s.totalQuestions + ')</span></div>' +
+        '<div style="font-weight:700; font-size:1.05rem; margin-top:2px;">' + getCharacterEmoji(s.character) + ' ' + esc(s.name) + ' <span class="badge badge-ok">' + s.acc + '% (' + s.correct + '/' + s.totalQuestions + ')</span></div>' +
       '</div>' +
       '<div style="text-align:right;">' +
         '<div class="serif" style="font-size:1.65rem; line-height:1;">' + s.score.toLocaleString("es-NI") + ' <small class="mono">pts</small></div>' +
@@ -968,6 +1000,7 @@ function renderAllAdminViews(){
 var PL_GAME = {
   active: false,
   waitingForHost: false,
+  character: "🧙",
   name: "",
   mode: "full",
   secLimit: 15,
@@ -983,6 +1016,33 @@ var PL_GAME = {
   timerIv: null,
   answeredCurrent: false
 };
+
+var PLAYER_CHARACTERS = [
+  { id: "mage", emoji: "🧙", name: "Mago" },
+  { id: "robot", emoji: "🤖", name: "Robot" },
+  { id: "dragon", emoji: "🐲", name: "Dragón" },
+  { id: "ninja", emoji: "🥷", name: "Ninja" },
+  { id: "fox", emoji: "🦊", name: "Zorro" },
+  { id: "alien", emoji: "👽", name: "Alien" },
+  { id: "crown", emoji: "👑", name: "Realeza" },
+  { id: "ghost", emoji: "👻", name: "Fantasma" }
+];
+
+function renderCharacterPicker(){
+  var grid = $("#plCharacterGrid");
+  if(!grid) return;
+  grid.innerHTML = PLAYER_CHARACTERS.map(function(character){
+    return '<button class="character-choice' + (character.emoji === PL_GAME.character ? " selected" : "") +
+      '" type="button" data-character="' + character.id + '" aria-label="' + character.name + '">' +
+      '<span class="character-avatar">' + character.emoji + '</span>' +
+      '<span class="character-name">' + character.name + '</span>' +
+    '</button>';
+  }).join("");
+}
+
+function getCharacterEmoji(emoji){
+  return emoji || "🧙";
+}
 
 function showPlayerWaiting(message){
   $("#playerLobbyCard").hidden = true;
@@ -1035,6 +1095,7 @@ function startPlayerKahoot(){
   }
 
   PL_GAME.name = name;
+  startBackgroundMusic();
   PL_GAME.mode = $("#plModeSelect").value || "full";
   PL_GAME.secLimit = +($("#plTimerSelect").value || 15);
   PL_GAME.deck = getCombinedDeck(PL_GAME.mode);
@@ -1050,6 +1111,7 @@ function startPlayerKahoot(){
   broadcastPacket({
     kind: "player_join",
     player: PL_GAME.name,
+    character: PL_GAME.character,
     mode: PL_GAME.mode
   });
   showPlayerWaiting("Ya estás dentro de la sala. James controlará el inicio y cada pregunta.");
@@ -1062,6 +1124,11 @@ function renderPlayerCurrentCard(startedAt){
 
   var item = PL_GAME.deck[PL_GAME.idx];
   var meta = CAT_META[item.c] || { name: item.c };
+  $("#playerActiveStage").classList.remove("question-enter");
+  $("#plQuestionText").parentElement.classList.remove("question-pop");
+  void $("#playerActiveStage").offsetWidth;
+  $("#playerActiveStage").classList.add("question-enter");
+  $("#plQuestionText").parentElement.classList.add("question-pop");
 
   $("#plHudRound").textContent = (PL_GAME.idx + 1) + " / " + PL_GAME.deck.length;
   $("#plHudPlayerName").textContent = PL_GAME.name;
@@ -1082,6 +1149,10 @@ function renderPlayerCurrentCard(startedAt){
       '<span class="duel-card-text">' + esc(optText) + '</span>' +
     '</button>';
   }).join("");
+  $$("#plOptionsGrid .duel-card").forEach(function(card, index){
+    card.style.animationDelay = (index * 70) + "ms";
+    card.classList.add("answer-enter");
+  });
 
   PL_GAME.qStartMs = startedAt || Date.now();
   var limitMs = PL_GAME.secLimit * 1000;
@@ -1205,6 +1276,7 @@ function finishPlayerGame(){
   var sub = {
     id: "pl_" + PL_GAME.name.toLowerCase().replace(/[^a-z0-9]/g, "") + "_" + Date.now().toString(36),
     name: PL_GAME.name,
+    character: PL_GAME.character,
     mode: PL_GAME.mode,
     totalQuestions: totalQ,
     correct: PL_GAME.correct,
@@ -1227,6 +1299,7 @@ function finishPlayerGame(){
   $("#plResultCodeOutput").value = codeToken;
   $("#plResHeadline").textContent = sub.name + ": " + sub.score.toLocaleString("es-NI") + " puntos";
   $("#plResRankBadge").textContent = rank;
+  renderPlayerPodium();
 
   $("#plResKpis").innerHTML = [
     { t: "puntaje total", v: sub.score.toLocaleString("es-NI") + " pts" },
@@ -1248,6 +1321,29 @@ function finishPlayerGame(){
       '<span class="badge ' + (ans.correct ? "badge-ok" : "badge-bad") + '">' + (ans.correct ? ("+" + ans.pts + " pts") : "0 pts") + ' · ' + (ans.ms / 1000).toFixed(1) + 's</span>' +
     '</div>';
   }).join("") + '</div>';
+  stopBackgroundMusic();
+}
+
+function renderPlayerPodium(){
+  var list = $("#playerPodiumList");
+  if(!list) return;
+  var podium = STATE.submissions.slice().sort(function(a, b){
+    if(b.score !== a.score) return b.score - a.score;
+    return a.avgSec - b.avgSec;
+  }).slice(0, 3);
+  if(!podium.length){
+    list.innerHTML = '<div class="mono" style="color:#A5AECB;">Esperando resultados de la sala...</div>';
+    return;
+  }
+  var medals = ["🥇", "🥈", "🥉"];
+  list.innerHTML = podium.map(function(player, index){
+    return '<div class="podium-row">' +
+      '<span class="podium-medal">' + medals[index] + '</span>' +
+      '<span class="podium-avatar">' + getCharacterEmoji(player.character) + '</span>' +
+      '<span class="podium-info"><span class="podium-name">' + esc(player.name) + '</span><br>' +
+      '<span class="podium-score">' + player.score.toLocaleString("es-NI") + ' pts · ' + player.acc + '%</span></span>' +
+    '</div>';
+  }).join("");
 }
 
 /* =========================================================================
@@ -1841,6 +1937,21 @@ $("#btnSaveManualEntry").addEventListener("click", function(){
 });
 
 /* Eventos Modo Jugador Kahoot */
+$("#plCharacterGrid").addEventListener("click", function(e){
+  var choice = e.target.closest("[data-character]");
+  if(!choice) return;
+  var selected = PLAYER_CHARACTERS.filter(function(character){
+    return character.id === choice.getAttribute("data-character");
+  })[0];
+  if(selected){
+    PL_GAME.character = selected.emoji;
+    renderCharacterPicker();
+  }
+});
+$("#plMusicChk").addEventListener("change", function(e){
+  if(e.target.checked && PL_GAME.active) startBackgroundMusic();
+  else stopBackgroundMusic();
+});
 $("#plQuickFriendsChips").addEventListener("click", function(e){
   var b = e.target.closest("[data-pickfriend]");
   if(b){
@@ -2170,6 +2281,7 @@ if(window.__PRELOADED_CONFIG__){
   if(cfg.guests) STATE.guests = cfg.guests;
 }
 
+renderCharacterPicker();
 renderQuickFriendChips();
 connectLiveRoom();
 
