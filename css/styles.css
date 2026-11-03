@@ -70,6 +70,276 @@ body.player-only .container { max-width: 980px; padding-top: 28px; }
     width: 100%;
     padding: 0;
   }
+
+  /* =========================================================================
+     DE STIJL INTERFACE SYSTEM
+     Existing game screens only: no landing-page layout or flow changes.
+     ========================================================================= */
+  :root {
+    --primary-red-destijl: #FF0000;
+    --primary-blue-destijl: #0000FF;
+    --primary-yellow-destijl: #FFFF00;
+    --black-destijl: #000000;
+    --white-destijl: #FFFFFF;
+    --grey-destijl: #808080;
+    --grid-gap-destijl: 10px;
+    --font-destijl: Helvetica, Arial, sans-serif;
+    --paper: var(--white-destijl);
+    --sand: #F2F2F2;
+    --panel: var(--white-destijl);
+    --ink: var(--black-destijl);
+    --graphite: #4A4A4A;
+    --rule: var(--black-destijl);
+    --pink: var(--primary-red-destijl);
+    --pink-ink: #800000;
+    --pink-soft: #FFE5E5;
+    --gold: var(--primary-yellow-destijl);
+    --gold-night: var(--primary-yellow-destijl);
+    --night: var(--primary-blue-destijl);
+    --night-2: #000080;
+    --night-panel: #0000B8;
+    --teal: var(--primary-blue-destijl);
+    --teal-soft: #E5E5FF;
+    --red: var(--primary-red-destijl);
+    --red-soft: #FFE5E5;
+    --amber: #806600;
+    --amber-soft: #FFFDE5;
+    --violet: var(--primary-blue-destijl);
+    --violet-soft: #E5E5FF;
+    --ease-quiet: ease-out;
+    --shadow-lift: none;
+    --shadow-gold: none;
+  }
+
+  * { border-radius: 0 !important; }
+  body {
+    background: var(--white-destijl);
+    color: var(--black-destijl);
+    font-family: var(--font-destijl);
+    line-height: 1.45;
+  }
+  body.player-only {
+    background: var(--primary-blue-destijl);
+  }
+  .masthead {
+    background: var(--white-destijl);
+    border-bottom: 3px solid var(--black-destijl);
+  }
+  .masthead-inner,
+  .nav-inner,
+  .container {
+    max-width: 1280px;
+  }
+  .brand-seal {
+    background: var(--primary-red-destijl);
+    color: var(--white-destijl);
+    border: 2px solid var(--black-destijl);
+  }
+  .brand-title,
+  .hero-title,
+  .serif {
+    font-family: var(--font-destijl);
+    font-weight: 700;
+    letter-spacing: -0.035em;
+  }
+  .brand-title { font-size: 1.25rem; }
+  .hero-title { text-transform: uppercase; }
+  .hero-title em { color: var(--primary-blue-destijl); font-style: normal; }
+  .hero-banner,
+  .panel,
+  .duel-stage,
+  .modal-card,
+  .table-wrap {
+    background: var(--white-destijl);
+    border: 2px solid var(--black-destijl);
+    box-shadow: none;
+  }
+  .hero-banner::before,
+  .volcano-svg,
+  .bruma,
+  [class*="gradient"] {
+    display: none !important;
+  }
+  .hero-banner {
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-kicker,
+  .mono,
+  .field-label,
+  .panel-title,
+  .nav-btn,
+  button,
+  select,
+  input,
+  textarea {
+    font-family: var(--font-destijl);
+  }
+  .hero-kicker,
+  .mono {
+    color: var(--grey-destijl);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .nav-strip {
+    background: var(--black-destijl);
+    border: 0;
+  }
+  .nav-btn {
+    color: var(--white-destijl);
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: background-color 200ms ease, color 200ms ease, transform 200ms ease;
+  }
+  .nav-btn:hover,
+  .nav-btn.active {
+    background: var(--primary-yellow-destijl);
+    color: var(--black-destijl);
+  }
+  .btn,
+  .btn-sm,
+  .btn-lg {
+    border: 2px solid var(--black-destijl);
+    color: var(--black-destijl);
+    background: var(--white-destijl);
+    box-shadow: none;
+    cursor: pointer;
+    transition: background-color 200ms ease, color 200ms ease, transform 200ms ease;
+  }
+  .btn:hover,
+  .btn-sm:hover,
+  .btn-lg:hover {
+    background: var(--black-destijl);
+    color: var(--white-destijl);
+    transform: translateY(-1px);
+  }
+  .btn:active,
+  .btn-sm:active,
+  .btn-lg:active { transform: translateY(1px); }
+  .btn-pink,
+  .btn-gold,
+  .btn-teal {
+    background: var(--primary-yellow-destijl);
+    color: var(--black-destijl);
+  }
+  .btn-danger { background: var(--primary-red-destijl); color: var(--white-destijl); }
+  .btn-quiet { background: var(--white-destijl); color: var(--black-destijl); }
+  .badge,
+  .ability-pill,
+  .live-pill,
+  .status-pill {
+    border: 2px solid var(--black-destijl);
+    background: var(--white-destijl);
+    color: var(--black-destijl);
+  }
+  .badge-gold,
+  .badge-ok { background: var(--primary-yellow-destijl); }
+  .live-pill { background: var(--primary-blue-destijl); color: var(--white-destijl); }
+  .input,
+  .select,
+  input,
+  select,
+  textarea {
+    background: var(--white-destijl);
+    color: var(--black-destijl);
+    border: 2px solid var(--black-destijl);
+  }
+  .input:focus,
+  .select:focus,
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: 2px solid var(--primary-yellow-destijl);
+    outline-offset: 2px;
+  }
+  .cifras-grid,
+  .grid-2,
+  .grid-3,
+  .host-live-layout,
+  .duel-cards-grid,
+  .character-grid {
+    gap: var(--grid-gap-destijl);
+  }
+  .cifra-card,
+  .kpi-card,
+  .podium-card,
+  .feed-item,
+  .host-top-panel,
+  .host-question-summary {
+    border: 2px solid var(--black-destijl);
+    box-shadow: none;
+    background: var(--white-destijl);
+  }
+  .duel-stage {
+    background: var(--primary-blue-destijl);
+    color: var(--white-destijl);
+  }
+  .duel-question-box {
+    background: var(--white-destijl);
+    color: var(--black-destijl);
+    border: 2px solid var(--black-destijl);
+  }
+  .duel-card {
+    border: 2px solid var(--black-destijl);
+    box-shadow: none;
+    cursor: pointer;
+    transition: background-color 200ms ease, color 200ms ease, transform 200ms ease;
+  }
+  .duel-card:hover { transform: translateY(-2px); }
+  .duel-card:nth-child(4n + 1) { background: var(--primary-red-destijl); color: var(--white-destijl); }
+  .duel-card:nth-child(4n + 2) { background: var(--primary-blue-destijl); color: var(--white-destijl); }
+  .duel-card:nth-child(4n + 3) { background: var(--primary-yellow-destijl); color: var(--black-destijl); }
+  .duel-card:nth-child(4n + 4) { background: var(--white-destijl); color: var(--black-destijl); }
+  .duel-shape {
+    border: 2px solid currentColor;
+    background: transparent;
+  }
+  .kahoot-waiting-card {
+    background: var(--white-destijl);
+    color: var(--black-destijl);
+    border: 2px solid var(--black-destijl);
+    box-shadow: none;
+  }
+  .waiting-kicker,
+  .waiting-copy,
+  .waiting-status { color: var(--grey-destijl); }
+  .waiting-title { color: var(--primary-blue-destijl); }
+  .character-choice {
+    background: var(--white-destijl);
+    border: 2px solid var(--black-destijl);
+  }
+  .character-choice.selected,
+  .character-choice:hover {
+    background: var(--primary-yellow-destijl);
+    color: var(--black-destijl);
+  }
+  .toast {
+    border: 2px solid var(--black-destijl);
+    background: var(--primary-yellow-destijl);
+    color: var(--black-destijl);
+    box-shadow: none;
+  }
+  .footer-bar {
+    background: var(--black-destijl);
+    color: var(--white-destijl);
+    border-top: 3px solid var(--primary-yellow-destijl);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+  @media (max-width: 767px) {
+    .container { padding-left: var(--grid-gap-destijl); padding-right: var(--grid-gap-destijl); }
+    .nav-inner { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .nav-btn { min-height: 44px; }
+    .hero-banner,
+    .panel,
+    .duel-stage { border-width: 2px; }
+  }
   body.player-only #view-player-kahoot {
     min-height: 100vh;
   }
@@ -1232,4 +1502,114 @@ body.player-only #playerLobbyCard .friend-step-avatar {
   color: var(--graphite);
   font-family: "JetBrains Mono", monospace;
   font-size: 0.74rem;
+}
+
+/* De Stijl precedence layer: keep the existing game structure and behavior. */
+body,
+body.player-only { background: var(--white-destijl); color: var(--black-destijl); }
+body.player-only { background: var(--primary-blue-destijl); }
+.masthead,
+.hero-banner,
+.panel,
+.duel-stage,
+.modal-card,
+.table-wrap,
+.kahoot-waiting-card {
+  border: 2px solid var(--black-destijl);
+  border-radius: 0;
+  box-shadow: none;
+}
+.masthead,
+.hero-banner,
+.panel,
+.modal-card { background: var(--white-destijl); }
+.nav-strip { background: var(--black-destijl); }
+.nav-btn:hover,
+.nav-btn.active { background: var(--primary-yellow-destijl); color: var(--black-destijl); }
+.btn,
+.btn-sm,
+.btn-lg,
+.input,
+.select,
+input,
+select,
+textarea {
+  border: 2px solid var(--black-destijl);
+  border-radius: 0;
+  box-shadow: none;
+  cursor: pointer;
+}
+.btn-pink,
+.btn-gold,
+.btn-teal,
+.badge-gold,
+.badge-ok { background: var(--primary-yellow-destijl); color: var(--black-destijl); }
+.btn-danger { background: var(--primary-red-destijl); color: var(--white-destijl); }
+.live-pill,
+.duel-stage { background: var(--primary-blue-destijl); color: var(--white-destijl); }
+.duel-question-box {
+  border: 2px solid var(--black-destijl);
+  border-radius: 0;
+  background: var(--white-destijl);
+  color: var(--black-destijl);
+}
+.duel-card {
+  border: 2px solid var(--black-destijl);
+  border-radius: 0;
+  box-shadow: none;
+  cursor: pointer;
+  transition: background-color 200ms ease, color 200ms ease, transform 200ms ease;
+}
+.duel-card:nth-child(4n + 1) { background: var(--primary-red-destijl); color: var(--white-destijl); }
+.duel-card:nth-child(4n + 2) { background: var(--primary-blue-destijl); color: var(--white-destijl); }
+.duel-card:nth-child(4n + 3) { background: var(--primary-yellow-destijl); color: var(--black-destijl); }
+.duel-card:nth-child(4n + 4) { background: var(--white-destijl); color: var(--black-destijl); }
+.cifra-card,
+.kpi-card,
+.podium-card,
+.feed-item,
+.host-top-panel,
+.host-question-summary,
+.character-choice {
+  border: 2px solid var(--black-destijl);
+  border-radius: 0;
+  box-shadow: none;
+  background: var(--white-destijl);
+}
+.character-choice.selected,
+.character-choice:hover { background: var(--primary-yellow-destijl); color: var(--black-destijl); }
+.kahoot-waiting-card { color: var(--black-destijl); background: var(--white-destijl); }
+.waiting-title { color: var(--primary-blue-destijl); }
+.modal-backdrop { background: rgba(0, 0, 0, 0.72); backdrop-filter: none; }
+.toast { border: 2px solid var(--black-destijl); border-radius: 0; background: var(--primary-yellow-destijl); color: var(--black-destijl); box-shadow: none; }
+.footer-bar { background: var(--black-destijl); color: var(--white-destijl); border-top: 3px solid var(--primary-yellow-destijl); }
+.brand-title,
+.hero-title,
+.hero-title em,
+.serif {
+  font-family: var(--font-destijl);
+  font-style: normal;
+  font-weight: 700;
+  color: var(--black-destijl);
+}
+.hero-title em { color: var(--primary-blue-destijl); }
+.container { overflow-x: hidden; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+@media (max-width: 767px) {
+  .nav-inner {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--grid-gap-destijl);
+  }
+  .nav-btn {
+    min-width: 0;
+    min-height: 44px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.72rem;
+  }
+  .masthead-inner { align-items: stretch; }
 }
