@@ -1,0 +1,808 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cumpleaños #19 · Kahoot para Amigos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js"></script>
+<script>window.__PLAYER_ONLY_MODE__ = true;</script>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="brand-group">
+      <div class="brand-seal" aria-hidden="true">✦</div>
+      <div>
+        <div class="brand-title">El Duelista Silencioso · Cumple #19</div>
+        <div class="mono" style="color:var(--graphite)" id="headerSubPath">~/cumple/admin-estadisticas · rock munchies · 3 nov 5:00 p. m.</div>
+      </div>
+      <span class="ability-pill" id="abilityPill">
+        <i class="ability-dot"></i>
+        <span id="abilityText">habilidad: estadística</span>
+      </span>
+    </div>
+
+    <div class="masthead-actions">
+      <div class="live-pill" title="Sincronización en tiempo real MQTT + Local">
+        <i class="radar-dot" id="netDot"></i>
+        <span id="netStatusTxt">sala 1926 · en vivo</span>
+      </div>
+      <button class="btn btn-sm btn-pink" id="btnDownloadFriendsHtml" type="button" title="Descarga un archivo HTML exclusivo de jugador para enviar por WhatsApp a tus amigos">
+        ✦ Descargar HTML para Amigos
+      </button>
+      <button class="btn btn-sm btn-quiet" id="btnToggleTheme" type="button" aria-label="Cambiar modo noche">
+        ☾ Noche
+      </button>
+    </div>
+  </div>
+
+  <nav class="nav-strip" id="mainNavStrip" aria-label="Navegación principal">
+    <div class="nav-inner">
+      <button class="nav-btn active" type="button" data-view="admin-stats">
+        <span class="num">01</span> 📊 Admin: Datos y Estadísticas
+      </button>
+      <button class="nav-btn" type="button" data-view="admin-questions">
+        <span class="num">02</span> 🔍 Análisis por Pregunta (21)
+      </button>
+      <button class="nav-btn" type="button" data-view="player-kahoot">
+        <span class="num">03</span> 🎮 Jugar Kahoot (Vista Amigos)
+      </button>
+      <button class="nav-btn" type="button" data-view="host-stage">
+        <span class="num">04</span> 🎥 Pantalla Show en Vivo
+      </button>
+      <span class="nav-sep" aria-hidden="true"></span>
+      <button class="nav-btn" type="button" data-view="org-hub">
+        <span class="num">05</span> 🍕 Organización y Pizzas (Rock Munchies)
+      </button>
+      <button class="nav-btn" type="button" data-view="editor-retos">
+        <span class="num">06</span> ⚙️ Editor de Retos y Sala
+      </button>
+    </div>
+  </nav>
+</header>
+
+<main class="container">
+
+  <!-- =====================================================================
+       VISTA 01: PANEL DE ADMINISTRADOR - DATOS Y ESTADÍSTICAS
+       ===================================================================== -->
+  <section class="view-sec active" id="view-admin-stats">
+    <div class="hero-banner">
+      <svg class="volcano-svg" viewBox="0 0 320 90" aria-hidden="true">
+        <path d="M10 90 L85 22 L102 22 L165 90 Z M140 90 L215 12 L232 12 L310 90 Z" fill="currentColor"/>
+      </svg>
+      <div class="hero-top">
+        <div>
+          <div class="hero-kicker">
+            <span>✦ centro de comando y telemetría</span>
+            <span>·</span>
+            <span id="adminRoomBadge">sala pin: 1926</span>
+          </div>
+          <h1 class="hero-title">Panel de <em>Administrador</em> y Estadísticas</h1>
+          <p class="hero-sub">
+            Recibe en tiempo real las respuestas, tiempos de reacción en milisegundos, rachas y puntos de vida (LP) de tus amigos. Si alguien juega sin señal dentro de Rock Munchies, pega su código de WhatsApp y se integra al instante.
+          </p>
+        </div>
+        <div class="toolbar">
+          <button class="btn btn-pink" id="btnOpenShareModal" type="button">📲 Cómo pasar el reto a tus amigos</button>
+          <button class="btn btn-quiet" id="btnOpenImportModal" type="button">📥 Importar código de WhatsApp</button>
+        </div>
+      </div>
+
+      <div class="toolbar" style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--rule); justify-content: space-between;">
+        <div class="toolbar">
+          <span class="badge badge-gold" id="demoStateBadge">✦ datos de prueba activos (12 amigos)</span>
+          <button class="btn btn-sm btn-quiet" id="btnSimMore" type="button">⚡ Simular +5 jugadores</button>
+          <button class="btn btn-sm btn-danger" id="btnClearResults" type="button">🗑️ Limpiar sala para iniciar de cero</button>
+        </div>
+        <div class="toolbar">
+          <button class="btn btn-sm btn-quiet" id="btnExportCsv" type="button">📊 Exportar CSV (Excel)</button>
+          <button class="btn btn-sm btn-quiet" id="btnExportJson" type="button">📦 Exportar JSON</button>
+          <button class="btn btn-sm btn-teal" id="btnCopyWhatsappSummary" type="button">📋 Copiar Podio para WhatsApp</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6 KPIs Estadísticos -->
+    <div class="cifras-grid" id="adminKpisGrid"></div>
+
+    <!-- Sala en Vivo + Podio Top 3 -->
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title"><span class="star">✦</span> Podio Actual y Asignación de Premios</h2>
+          <span class="mono" id="podiumSubTxt">top 3 duelistas</span>
+        </div>
+        <div id="podiumContainer"></div>
+        <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <span class="mono" style="color:var(--graphite)" id="prizeBudgetHint">Tope de premios: C$ 500 entre los dos ganadores.</span>
+          <button class="btn btn-sm btn-quiet" id="btnAssignTopWinners" type="button">🏆 Asignar líderes a Premios del Evento</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title"><span class="star">✦</span> Telemetría en Tiempo Real (Actividad)</h2>
+          <div class="toolbar">
+            <span class="badge badge-ok" id="liveCountBadge">0 eventos</span>
+            <button class="btn btn-sm btn-quiet" id="btnOpenManualEntry" type="button">+ Registrar manual</button>
+          </div>
+        </div>
+        <div class="live-feed-box" id="liveFeedContainer"></div>
+      </div>
+    </div>
+
+    <!-- Gráficas Estadísticas: Categorías y Distribución -->
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title"><span class="star">✦</span> Precisión por Categoría Temática</h2>
+          <span class="mono">¿en qué tema te conocen mejor?</span>
+        </div>
+        <div id="categoryChartBox"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title"><span class="star">✦</span> Matriz Velocidad vs. Precisión</h2>
+          <span class="mono">tiempo medio (s) vs. % de acierto</span>
+        </div>
+        <div id="scatterChartBox"></div>
+      </div>
+    </div>
+
+    <!-- Distribución de Puntajes (Histograma Econométrico) + Resumen de Retos -->
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title"><span class="star">✦</span> Distribución de Puntajes (Histograma)</h2>
+          <span class="mono" id="statsDispersionTxt">media, mediana y desviación</span>
+        </div>
+        <div id="scoreDistChartBox"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title"><span class="star">✦</span> Diagnóstico de Preguntas Extremas</h2>
+          <span class="mono">las 3 más difíciles y las 3 más fáciles</span>
+        </div>
+        <div id="extremeQuestionsBox"></div>
+      </div>
+    </div>
+
+    <!-- Tabla Completa de Resultados (Leaderboard) -->
+    <div class="panel">
+      <div class="panel-head">
+        <h2 class="panel-title"><span class="star">✦</span> Libro Mayor de Duelistas (Ranking Completo)</h2>
+        <div class="toolbar">
+          <input class="input" id="leaderSearchInput" type="search" placeholder="Buscar amigo por nombre..." style="width: 210px; height: 34px;">
+          <select class="select" id="leaderFilterMode" style="width: 170px; height: 34px;" aria-label="Filtrar modo">
+            <option value="all">Todos los modos</option>
+            <option value="full">Reto Completo (21)</option>
+            <option value="quiz">Solo Quiz (15)</option>
+            <option value="verdades">Solo Dos Verdades (6)</option>
+          </select>
+          <select class="select" id="leaderSortBy" style="width: 185px; height: 34px;" aria-label="Ordenar por">
+            <option value="score">Ordenar: Puntaje Kahoot</option>
+            <option value="acc">Ordenar: Precisión (%)</option>
+            <option value="time">Ordenar: Más Rápidos (s)</option>
+            <option value="streak">Ordenar: Mayor Racha</option>
+            <option value="lp">Ordenar: Puntos de Vida (LP)</option>
+            <option value="recent">Ordenar: Más Recientes</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="ledger-wrap">
+        <table class="ledger-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>duelista / amigo</th>
+              <th>modo</th>
+              <th>puntaje kahoot</th>
+              <th>aciertos</th>
+              <th>precisión</th>
+              <th>tiempo prom.</th>
+              <th>racha máx.</th>
+              <th>lp final</th>
+              <th>rango</th>
+              <th>acciones</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================================
+       VISTA 02: ANÁLISIS POR PREGUNTA (ITEM ANALYSIS ESTILO KAHOOT)
+       ===================================================================== -->
+  <section class="view-sec" id="view-admin-questions">
+    <div class="hero-banner">
+      <div class="hero-top">
+        <div>
+          <div class="hero-kicker"><span>✦ auditoría de reactivos · 15 preguntas de quiz + 6 rondas de diagnóstico</span></div>
+          <h1 class="hero-title">Análisis <em>Pregunta por Pregunta</em></h1>
+          <p class="hero-sub">
+            Revisa qué porcentaje de tus amigos acertó cada reto, cuántos segundos tardaron en pensar y qué opciones trampa engañaron a más personas.
+          </p>
+        </div>
+        <div class="toolbar">
+          <select class="select" id="qAnalysisFilterCat" style="width: 190px;">
+            <option value="all">Todas las categorías (21)</option>
+            <option value="quiz">Solo Quiz (15)</option>
+            <option value="mentira">Solo Dos Verdades (6)</option>
+            <option value="guerra">Guerra / War Thunder</option>
+            <option value="comida">Comida y Café</option>
+            <option value="ajedrez">Ajedrez</option>
+            <option value="cartas">Yu-Gi-Oh!</option>
+            <option value="musica">Música</option>
+            <option value="series">Series</option>
+            <option value="libros">Libros</option>
+          </select>
+          <select class="select" id="qAnalysisSort" style="width: 195px;">
+            <option value="num">Orden original (1 a 21)</option>
+            <option value="hard">Más difíciles primero</option>
+            <option value="easy">Más fáciles primero</option>
+            <option value="slow">Más lentas de responder</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div id="questionBreakdownList"></div>
+  </section>
+
+  <!-- =====================================================================
+       VISTA 03: JUGAR KAHOOT (LO QUE VEN TUS AMIGOS EN SU CELULAR)
+       ===================================================================== -->
+  <section class="view-sec" id="view-player-kahoot">
+    <!-- Lobby de entrada del jugador -->
+    <div id="playerLobbyCard" class="panel" style="max-width: 780px; margin: 0 auto; border-width: 2px; border-color: var(--gold);">
+      <div class="panel-head">
+        <div>
+          <span class="mono" style="color:var(--gold)">✦ duelo de cumpleaños n.º 19 · james santiago</span>
+          <h2 class="serif" style="font-size: 2.3rem; line-height: 1.05; margin-top: 4px;">¿Cuánto me conoces realmente?</h2>
+        </div>
+        <span class="badge badge-gold">8000 LP iniciales</span>
+      </div>
+
+      <p style="color:var(--graphite); margin-bottom: 18px;">
+        Entra con tu nombre y espera a James: él inicia y controla cada carta para que todos respondan al mismo tiempo. Ganas hasta <strong>1,000 puntos por pregunta</strong> según tu velocidad y multiplicas tu racha. Tus respuestas llegan en directo al panel de James.
+      </p>
+
+      <div class="grid-2" style="margin-bottom: 16px;">
+        <label class="field-label">
+          Tu nombre o apodo (elige de la lista o escribe el tuyo)
+          <input class="input" id="plNameInput" type="text" placeholder="Ej. Melissa, Fidel, Alejandro, Samantha..." maxlength="40">
+        </label>
+        <label class="field-label">
+          PIN de Sala (para enviar en vivo al Admin)
+          <input class="input mono" id="plPinInput" type="text" value="1926" maxlength="12">
+        </label>
+      </div>
+
+      <div class="character-picker" style="margin-bottom: 18px;">
+        <div class="mono character-picker-title">elige tu personaje</div>
+        <div class="character-grid" id="plCharacterGrid"></div>
+      </div>
+
+      <div style="margin-bottom: 18px;">
+        <div class="mono" style="color:var(--graphite); margin-bottom: 6px;">invitados confirmados (toca tu nombre para autocompletar):</div>
+        <div class="chip-list" id="plQuickFriendsChips"></div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom: 20px;">
+        <label class="field-label">
+          Modalidad del reto
+          <select class="select" id="plModeSelect">
+            <option value="full">Reto Completo: 15 de Quiz + 6 de Dos Verdades (21 rondas)</option>
+            <option value="quiz">Solo Quiz: ¿Cuánto me conoces? (15 preguntas)</option>
+            <option value="verdades">Solo Diagnóstico: Dos verdades y una mentira (6 rondas)</option>
+          </select>
+        </label>
+        <label class="field-label">
+          Tiempo por carta
+          <select class="select" id="plTimerSelect">
+            <option value="15">15 segundos (Estándar Kahoot)</option>
+            <option value="20">20 segundos (Relajado)</option>
+            <option value="10">10 segundos (Blitz Ajedrez)</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="toolbar" style="justify-content: space-between; padding-top: 14px; border-top: 1px solid var(--rule);">
+        <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-size:0.86rem;">
+          <input type="checkbox" id="plSoundChk" checked> Efectos de sonido de duelo
+        </label>
+        <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-size:0.86rem;">
+          <input type="checkbox" id="plMusicChk" checked> Música de fondo
+        </label>
+        <button class="btn btn-lg btn-gold" id="btnStartPlayerGame" type="button">
+          ✦ Entrar a la partida
+        </button>
+      </div>
+    </div>
+
+    <!-- Escenario activo del jugador -->
+    <div id="playerActiveStage" class="duel-stage" hidden>
+      <div>
+        <div class="duel-hud">
+          <div class="toolbar">
+            <span class="badge badge-gold" id="plHudRound">01 / 21</span>
+            <span class="mono" id="plHudPlayerName" style="color:#A5AECB;">Jugador</span>
+          </div>
+          <div class="toolbar">
+            <span class="streak-pill" id="plHudStreak">🔥 racha x0</span>
+            <span class="lp-counter" title="Puntos de Vida Yu-Gi-Oh!">
+              <small>LP</small>
+              <b id="plHudLp">8000</b>
+            </span>
+            <span class="lp-counter" style="border-color:#5EEAD4; color:#5EEAD4;">
+              <small>PTS</small>
+              <b id="plHudScore">0</b>
+            </span>
+          </div>
+        </div>
+
+        <!-- Barra de progreso de tiempo -->
+        <div style="height: 8px; background: rgba(255,255,255,0.12); border-radius: 999px; overflow: hidden; margin-top: 12px;">
+          <div id="plTimeBarFill" style="height: 100%; width: 100%; background: linear-gradient(90deg, #5EEAD4, #E2B94B, #EC5C9A); transition: width 100ms linear;"></div>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-top:6px;" class="mono">
+          <span id="plTypeHint" style="color:#A5AECB;">elige la respuesta correcta</span>
+          <span id="plTimeLeftTxt" style="color:var(--gold-night); font-weight:700;">15.0 s</span>
+        </div>
+
+        <div class="duel-question-box">
+          <span class="duel-cat-badge" id="plCatBadge">categoría</span>
+          <h2 class="duel-q-text" id="plQuestionText">Pregunta</h2>
+        </div>
+
+        <div class="duel-cards-grid" id="plOptionsGrid"></div>
+      </div>
+
+      <!-- Banner de retroalimentación tras responder -->
+      <div id="plFeedbackBox" hidden style="margin-top: 20px; padding: 16px 20px; border-radius: 14px; background: rgba(15,22,54,0.95); border: 1.5px solid var(--gold-night); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+        <div>
+          <div class="serif" id="plFeedbackTitle" style="font-size: 1.55rem; color: #fff;">Resultado</div>
+          <div class="mono" id="plFeedbackSub" style="color: #A5AECB; margin-top: 2px;">Detalle</div>
+        </div>
+        <button class="btn btn-gold" id="btnNextPlayerQuestion" type="button">Siguiente Carta →</button>
+      </div>
+    </div>
+
+    <!-- Pantalla Final de Resultados del Jugador -->
+    <div id="playerResultCard" class="panel" style="max-width: 820px; margin: 0 auto; border-width: 2px; border-color: var(--gold);" hidden>
+      <div class="panel-head">
+        <div>
+          <span class="mono" id="plResSyncBadge" style="color:var(--teal);">✓ resultados enviados en directo al panel de james</span>
+          <h2 class="serif" style="font-size: 2.4rem; margin-top: 4px;" id="plResHeadline">¡Duelo completado!</h2>
+        </div>
+        <span class="badge badge-gold" id="plResRankBadge" style="font-size:0.85rem; padding: 6px 14px;">Rango</span>
+      </div>
+
+      <div class="cifras-grid" id="plResKpis" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); margin-bottom: 20px;"></div>
+      <div class="podium-card" id="playerPodiumCard">
+        <div class="podium-title">🏆 Podio de la sala</div>
+        <div class="podium-list" id="playerPodiumList"></div>
+      </div>
+
+      <!-- Respaldo para enviar por WhatsApp o copiar código -->
+      <div style="background: var(--sand); border: 1px solid var(--rule); border-radius: 14px; padding: 16px; margin-bottom: 20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
+          <div>
+            <strong style="font-size:0.95rem;">📲 Asegura tu registro en el Ranking de Premios</strong>
+            <p style="font-size:0.82rem; color:var(--graphite);">
+              Tus datos ya se registraron en la sala. Si estás en Rock Munchies sin conexión, envíale este código a James por WhatsApp con un toque:
+            </p>
+          </div>
+          <div class="toolbar">
+            <button class="btn btn-teal" id="btnPlayerSendWhatsapp" type="button">📲 Enviar a James por WhatsApp</button>
+            <button class="btn btn-quiet" id="btnPlayerCopyCode" type="button">📋 Copiar código DUELO19</button>
+          </div>
+        </div>
+        <input class="input mono" id="plResultCodeOutput" type="text" readonly style="font-size:0.75rem; height:34px;" aria-label="Código compacto de resultado">
+      </div>
+
+      <div class="panel-head" style="margin-top: 10px;">
+        <h3 class="serif" style="font-size: 1.4rem;">Tu desglose carta por carta</h3>
+        <button class="btn btn-sm btn-quiet" id="btnPlayAgain" type="button">↻ Jugar de nuevo / Cambiar jugador</button>
+      </div>
+      <div id="plPersonalBreakdownList"></div>
+    </div>
+  </section>
+
+  <!-- =====================================================================
+       VISTA 04: PANTALLA SHOW EN VIVO (MODO PRESENTADOR / ANFITRIÓN)
+       ===================================================================== -->
+  <section class="view-sec" id="view-host-stage">
+    <div class="hero-banner">
+      <div class="hero-top">
+        <div>
+          <div class="hero-kicker"><span>✦ modo presentador en mesa · todos de pie (con dedos o desde sus celulares)</span></div>
+          <h1 class="hero-title">Escenario de <em>Duelo en Vivo</em></h1>
+          <p class="hero-sub">
+            Dirige las rondas frente al grupo en Rock Munchies. Muestra la pregunta, lanza la cuenta regresiva, revela la carta ganadora y mira cuántos votos recibió cada opción en tiempo real.
+          </p>
+        </div>
+        <div class="toolbar">
+          <select class="select" id="hostDeckSelect" style="width: 240px;">
+            <option value="all">Mazo Completo (21 retos)</option>
+            <option value="quiz">Solo Quiz (15 preguntas)</option>
+            <option value="verdades">Solo Dos Verdades (6 rondas)</option>
+          </select>
+          <button class="btn btn-quiet" id="btnHostFullscreen" type="button">⛶ Pantalla Completa</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="duel-stage" id="hostStageContainer">
+      <div>
+        <div class="duel-hud">
+          <div class="toolbar">
+            <span class="badge badge-gold" id="hostRoundBadge">Carta 01 / 21</span>
+            <span class="duel-cat-badge" id="hostCatBadge" style="margin:0;">categoría</span>
+          </div>
+          <div class="toolbar">
+            <div class="lp-counter">
+              <small>EN PIE (LP)</small>
+              <b id="hostStandingCount">32</b>
+            </div>
+            <button class="btn btn-sm btn-quiet" id="btnHostMinus1" type="button" style="background:#16204A; color:#fff; border-color:#3B4A8B;">−1</button>
+            <button class="btn btn-sm btn-quiet" id="btnHostMinus5" type="button" style="background:#16204A; color:#fff; border-color:#3B4A8B;">−5</button>
+            <button class="btn btn-sm btn-quiet" id="btnHostResetStanding" type="button" style="background:#16204A; color:#fff; border-color:#3B4A8B;">↺ 32</button>
+          </div>
+        </div>
+
+        <div class="duel-question-box">
+          <h2 class="duel-q-text" id="hostQuestionText">Cargando carta...</h2>
+          <div class="mono" id="hostTimerDisplay" style="color:var(--gold-night); font-size:1.3rem; margin-top:10px;">Listo para revelar</div>
+        </div>
+
+        <div class="duel-cards-grid" id="hostCardsGrid"></div>
+      </div>
+
+      <div id="hostAnswerBanner" hidden style="margin-top: 20px; padding: 14px 18px; border-radius: 12px; background: rgba(14,124,107,0.25); border: 1.5px solid #5EEAD4; font-family: 'JetBrains Mono', monospace; color: #fff;"></div>
+
+      <div class="toolbar" style="justify-content: space-between; margin-top: 22px; padding-top: 14px; border-top: 1px solid rgba(226,185,75,0.28);">
+        <div class="toolbar">
+          <button class="btn btn-quiet" id="btnHostPrev" type="button" style="background:#16204A; color:#fff; border-color:#3B4A8B;">← Anterior</button>
+          <button class="btn btn-lg btn-gold" id="btnHostAction" type="button">✦ Iniciar carta para todos (10 s)</button>
+          <button class="btn btn-quiet" id="btnHostRevealNow" type="button" style="background:#16204A; color:#fff; border-color:#3B4A8B;">Revelar Carta</button>
+          <button class="btn btn-quiet" id="btnHostNext" type="button" style="background:#16204A; color:#fff; border-color:#3B4A8B;">Siguiente →</button>
+        </div>
+        <span class="mono" style="color:#A5AECB;" id="hostVotesCounterTxt">0 respuestas registradas en esta pregunta</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================================
+       VISTA 05: ORGANIZACIÓN DEL CUMPLEAÑOS (ROCK MUNCHIES, INVITADOS, PIZZAS)
+       ===================================================================== -->
+  <section class="view-sec" id="view-org-hub">
+    <div class="hero-banner">
+      <div class="hero-top">
+        <div>
+          <div class="hero-kicker"><span>✦ logística maestra · martes 3 de noviembre de 2026 · 5:00 p. m.</span></div>
+          <h1 class="hero-title">Organización: <em>Rock Munchies</em> y Presupuesto</h1>
+          <p class="hero-sub">
+            Control de los 33 invitados (32 confirmados y 1 pendiente), calculadora del pedido de pizzas y bebidas en Rock Munchies, presupuesto de C$ 5,000, programa de la noche y pendientes.
+          </p>
+        </div>
+        <div class="toolbar">
+          <button class="btn btn-quiet" id="btnCopyHostSheet" type="button">📋 Copiar Hoja del Anfitrión (Modo sin internet)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPIs de Organización -->
+    <div class="cifras-grid" id="orgKpisGrid"></div>
+
+    <div class="grid-2">
+      <!-- Calculadora Pedido Rock Munchies -->
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title"><span class="star">✦</span> Pedido a Rock Munchies</h2>
+          <div class="toolbar">
+            <span class="mono">tamaño:</span>
+            <select class="select" id="rmPizzaSize" style="width: 110px; height: 32px;">
+              <option value="12">12 pulgadas</option>
+              <option value="14" selected>14 pulgadas</option>
+              <option value="18">18 pulgadas</option>
+            </select>
+            <button class="btn btn-sm btn-quiet" id="btnFitPizzas" type="button">Ajustar a 3 porciones/persona</button>
+          </div>
+        </div>
+        <div id="rmOrderTableBox"></div>
+        <div class="chip-list" id="rmOrderSummaryBadges" style="margin-top: 12px;"></div>
+      </div>
+
+      <!-- Presupuesto C$ 5,000 -->
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title"><span class="star">✦</span> Libro Contable (Meta C$ 5,000)</h2>
+          <span class="badge badge-ok" id="budBalanceBadge">En meta</span>
+        </div>
+        <div class="toolbar" style="margin-bottom: 12px;">
+          <input class="input" id="budNewConcept" type="text" placeholder="Concepto (pastel, decoración...)" style="flex: 2; height: 34px;">
+          <input class="input" id="budNewAmount" type="number" min="0" placeholder="Monto C$" style="flex: 1; height: 34px;">
+          <select class="select" id="budNewCat" style="flex: 1; height: 34px;">
+            <option value="Comida">Comida</option>
+            <option value="Pastel">Pastel</option>
+            <option value="Premios">Premios</option>
+            <option value="Otro">Otro</option>
+          </select>
+          <button class="btn btn-sm" id="btnAddBudgetRow" type="button">+ Agregar</button>
+        </div>
+        <div class="ledger-wrap">
+          <table class="ledger-table">
+            <thead>
+              <tr>
+                <th>concepto</th>
+                <th>categoría</th>
+                <th>monto (c$)</th>
+                <th>pagado</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="budgetTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Lista de 33 Invitados -->
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title"><span class="star">✦</span> Lista de Invitados (33)</h2>
+          <div class="toolbar">
+            <select class="select" id="guestFilterSelect" style="width: 145px; height: 32px;">
+              <option value="all">Todos (33)</option>
+              <option value="c">Confirmados</option>
+              <option value="p">Pendientes</option>
+              <option value="i">Infaltables</option>
+            </select>
+            <button class="btn btn-sm btn-quiet" id="btnCopyGuestsList" type="button">Copiar lista</button>
+          </div>
+        </div>
+        <div class="toolbar" style="margin-bottom: 12px;">
+          <input class="input" id="newGuestNameInput" type="text" placeholder="Agregar invitado..." style="flex: 1; height: 34px;">
+          <select class="select" id="newGuestStateSelect" style="width: 130px; height: 34px;">
+            <option value="c">Confirmado</option>
+            <option value="p">Pendiente</option>
+          </select>
+          <button class="btn btn-sm" id="btnAddGuest" type="button">+ Agregar</button>
+        </div>
+        <div class="ledger-wrap" style="max-height: 360px; overflow-y: auto;">
+          <table class="ledger-table">
+            <thead>
+              <tr>
+                <th>nombre</th>
+                <th>estado</th>
+                <th>nota</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="guestsTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Programa de la Noche + Pendientes -->
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title"><span class="star">✦</span> Partida de la Noche (5:00 p. m.) y Pendientes</h2>
+          <span class="mono">apertura italiana</span>
+        </div>
+        <div class="ledger-wrap" style="margin-bottom: 18px;">
+          <table class="ledger-table">
+            <thead>
+              <tr>
+                <th>jugada</th>
+                <th>hora</th>
+                <th>actividad</th>
+                <th>min</th>
+              </tr>
+            </thead>
+            <tbody id="agendaTbody"></tbody>
+          </table>
+        </div>
+
+        <h3 class="serif" style="font-size: 1.3rem; margin-bottom: 10px;">Checklist de Pendientes</h3>
+        <div id="tasksChecklistBox"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================================
+       VISTA 06: EDITOR DE RETOS Y CONFIGURACIÓN DE SALA
+       ===================================================================== -->
+  <section class="view-sec" id="view-editor-retos">
+    <div class="hero-banner">
+      <div class="hero-top">
+        <div>
+          <div class="hero-kicker"><span>✦ personalización del mazo · cambios incluidos al descargar el html de amigos</span></div>
+          <h1 class="hero-title">Editor de <em>Retos</em> y Sala</h1>
+          <p class="hero-sub">
+            Modifica o agrega preguntas al Quiz o rondas a Dos Verdades y una Mentira. Al pulsar «Descargar HTML para Amigos», el archivo descargado llevará tus preguntas actualizadas y tu PIN de sala.
+          </p>
+        </div>
+        <div class="toolbar">
+          <button class="btn btn-pink" id="btnDownloadFriendsHtml2" type="button">📤 Descargar HTML Solo-Jugadores Actualizado</button>
+          <button class="btn btn-quiet" id="btnResetDefaultQuestions" type="button">↺ Restaurar las 21 originales</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2 class="panel-title"><span class="star">✦</span> Configuración de Sala y Premios</h2>
+      </div>
+      <div class="grid-3">
+        <label class="field-label">
+          PIN de Sala en Vivo (MQTT / WebRTC)
+          <input class="input mono" id="cfgRoomPin" type="text" value="1926">
+        </label>
+        <label class="field-label">
+          Premio 1 (Ganador del Quiz / General)
+          <input class="input" id="cfgPrize1Desc" type="text" placeholder="Ej. Sobres Yu-Gi-Oh! / Dulces / C$ 250">
+        </label>
+        <label class="field-label">
+          Premio 2 (Ganador de Dos Verdades)
+          <input class="input" id="cfgPrize2Desc" type="text" placeholder="Ej. Llavero / Chocolate / C$ 250">
+        </label>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title"><span class="star">✦</span> Preguntas del Quiz (15)</h2>
+          <button class="btn btn-sm" id="btnAddQuizQuestion" type="button">+ Nueva Pregunta</button>
+        </div>
+        <div id="editorQuizList" style="max-height: 620px; overflow-y: auto; padding-right: 6px;"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title"><span class="star">✦</span> Rondas de Dos Verdades y una Mentira (6)</h2>
+          <button class="btn btn-sm" id="btnAddVerdadesRound" type="button">+ Nueva Ronda</button>
+        </div>
+        <div id="editorVerdadesList" style="max-height: 620px; overflow-y: auto; padding-right: 6px;"></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- =======================================================================
+     MODALES (INSPECTOR DE JUGADOR, IMPORTAR CÓDIGOS, COMPARTIR, MANUAL)
+     ======================================================================= -->
+<div class="modal-backdrop" id="playerInspectModal" hidden>
+  <div class="modal-card">
+    <div class="panel-head">
+      <div>
+        <span class="mono" style="color:var(--gold)">✦ expediente individual de duelo</span>
+        <h2 class="serif" style="font-size: 1.9rem;" id="inspectPlayerName">Jugador</h2>
+      </div>
+      <button class="btn btn-sm btn-quiet" id="btnCloseInspectModal" type="button">✕ Cerrar</button>
+    </div>
+    <div id="inspectPlayerSummary" style="margin-bottom: 14px;"></div>
+    <div class="ledger-wrap" style="max-height: 420px; overflow-y: auto;">
+      <table class="ledger-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>reto / pregunta</th>
+            <th>respuesta elegida</th>
+            <th>correcta</th>
+            <th>tiempo</th>
+            <th>pts</th>
+          </tr>
+        </thead>
+        <tbody id="inspectPlayerTbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="importWhatsappModal" hidden>
+  <div class="modal-card">
+    <div class="panel-head">
+      <div>
+        <span class="mono" style="color:var(--teal)">✦ sincronización offline / whatsapp</span>
+        <h2 class="serif" style="font-size: 1.85rem;">Importar Resultados de Amigos</h2>
+      </div>
+      <button class="btn btn-sm btn-quiet" id="btnCloseImportModal" type="button">✕ Cerrar</button>
+    </div>
+    <p style="font-size: 0.88rem; color: var(--graphite); margin-bottom: 12px;">
+      Si algún amigo jugó sin internet en Rock Munchies y te mandó su mensaje de WhatsApp con el código <code>DUELO19:...</code>, pega aquí uno o varios mensajes juntos. El sistema detecta todos los códigos automáticamente:
+    </p>
+    <textarea class="input mono" id="importCodesTextarea" placeholder="Pega aquí el mensaje de WhatsApp o los códigos DUELO19:..."></textarea>
+    <div class="toolbar" style="justify-content: flex-end; margin-top: 14px;">
+      <button class="btn btn-teal" id="btnProcessImportCodes" type="button">✦ Procesar e Integrar Estadísticas</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="shareGuideModal" hidden>
+  <div class="modal-card">
+    <div class="panel-head">
+      <div>
+        <span class="mono" style="color:var(--pink)">✦ guía rápida para tu fiesta</span>
+        <h2 class="serif" style="font-size: 1.85rem;">Cómo pasar el Kahoot a tus amigos y recibir todo</h2>
+      </div>
+      <button class="btn btn-sm btn-quiet" id="btnCloseShareModal" type="button">✕ Cerrar</button>
+    </div>
+    <div style="display: grid; gap: 14px; font-size: 0.9rem;">
+      <div style="padding: 12px 14px; background: var(--sand); border-radius: 12px; border: 1px solid var(--rule);">
+        <strong>Paso 1 · Descarga el HTML exclusivo para amigos</strong>
+        <p style="color:var(--graphite); margin-top:4px;">
+          Haz clic en el botón rosa <strong>«✦ Descargar HTML para Amigos»</strong> arriba a la derecha. Eso descarga el archivo <code>retos-cumple-amigos.html</code> que se abre directo en el Kahoot (sin mostrar las respuestas ni el panel de administrador).
+        </p>
+      </div>
+      <div style="padding: 12px 14px; background: var(--sand); border-radius: 12px; border: 1px solid var(--rule);">
+        <strong>Paso 2 · Envíaselo por WhatsApp al grupo de la fiesta</strong>
+        <p style="color:var(--graphite); margin-top:4px;">
+          Tus amigos abren el archivo en su celular, eligen su nombre de la lista y juegan las 21 cartas con reloj, puntos de velocidad y puntos de vida (8000 LP).
+        </p>
+      </div>
+      <div style="padding: 12px 14px; background: var(--sand); border-radius: 12px; border: 1px solid var(--rule);">
+        <strong>Paso 3 · Recepción automática en vivo + Respaldo por WhatsApp</strong>
+        <p style="color:var(--graphite); margin-top:4px;">
+          Mientras tú tengas abierto este Panel de Administrador con el mismo PIN de sala (<code>1926</code>), cada respuesta que marquen con datos móviles llega en tiempo real vía MQTT WebSockets a tu tabla y gráficas. Y si alguien no tiene señal, al terminar toca <em>«Enviar a James por WhatsApp»</em> y tú lo importas con un clic.
+        </p>
+      </div>
+    </div>
+    <div class="toolbar" style="justify-content: space-between; margin-top: 18px;">
+      <button class="btn btn-pink" id="btnModalDownloadFriends" type="button">✦ Descargar retos-cumple-amigos.html ahora</button>
+      <button class="btn btn-quiet" id="btnCloseShareModal2" type="button">Entendido</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="manualEntryModal" hidden>
+  <div class="modal-card" style="max-width: 480px;">
+    <div class="panel-head">
+      <h2 class="serif" style="font-size: 1.7rem;">Registrar Resultado Manual</h2>
+      <button class="btn btn-sm btn-quiet" id="btnCloseManualModal" type="button">✕ Cerrar</button>
+    </div>
+    <div style="display: grid; gap: 12px;">
+      <label class="field-label">
+        Nombre del amigo
+        <input class="input" id="manPlayerName" type="text" placeholder="Ej. Gabriel">
+      </label>
+      <div class="grid-2">
+        <label class="field-label">
+          Aciertos (de 21)
+          <input class="input" id="manCorrectCount" type="number" min="0" max="21" value="15">
+        </label>
+        <label class="field-label">
+          Tiempo promedio (s)
+          <input class="input" id="manAvgTime" type="number" min="1" max="20" step="0.1" value="4.2">
+        </label>
+      </div>
+      <button class="btn btn-teal" id="btnSaveManualEntry" type="button">Guardar en el Ranking</button>
+    </div>
+  </div>
+</div>
+
+<footer class="footer-bar">
+  <span id="footerSyncTxt">✦ guardado automático local + telemetría mqtt sala 1926</span>
+  <span>el duelista silencioso · cumpleaños n.º 19 · rock munchies</span>
+</footer>
+
+<div class="toast" id="toastBox" role="status" aria-live="polite"></div>
+
+<script src="js/app.js"></script>
+</body>
+</html>

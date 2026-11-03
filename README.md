@@ -3,6 +3,7 @@
 ## Estructura
 
 - `index.html`: panel de James, vista Kahoot y pantalla del anfitrión.
+- `amigos.html`: acceso directo para los jugadores; abre solo el Kahoot.
 - `css/styles.css`: estilos compartidos.
 - `js/app.js`: preguntas, puntajes, sincronización MQTT y telemetría.
 
@@ -13,6 +14,9 @@
 3. Comparte el HTML de amigos desde el botón de descarga.
 4. Los jugadores escriben su nombre y pulsan **Entrar a la partida**.
 5. James controla el inicio, la revelación y el avance; las respuestas aparecen en el panel de telemetría.
+
+Para compartir directamente con los amigos usa:
+`https://jamesjsfouam.github.io/cumple2026-kahoot/amigos.html`
 
 La sincronización usa MQTT sobre WebSockets y el PIN de sala configurado en el editor. El archivo descargado para amigos incrusta los estilos y el código para conservar la apariencia del Kahoot.
 
